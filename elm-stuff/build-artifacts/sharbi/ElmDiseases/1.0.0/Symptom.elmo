@@ -1,0 +1,101 @@
+Elm.Symptom = Elm.Symptom || {};
+Elm.Symptom.make = function (_elm) {
+   "use strict";
+   _elm.Symptom = _elm.Symptom || {};
+   if (_elm.Symptom.values)
+   return _elm.Symptom.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Symptom",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $ShapeLayout = Elm.ShapeLayout.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var view = F2(function (context,
+   m) {
+      return A2($ShapeLayout.view,
+      context,
+      m.shape);
+   });
+   var symptomLayout = function (loc) {
+      return function () {
+         var h = $Basics.snd(loc) - 75;
+         var v = $Basics.fst(loc) - 50;
+         return _L.fromArray([{ctor: "_Tuple2"
+                              ,_0: "border-radius"
+                              ,_1: "1000px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "width"
+                              ,_1: "150px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "border"
+                              ,_1: "0"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "text-align"
+                              ,_1: "center"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "line-height"
+                              ,_1: "100px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "color"
+                              ,_1: "#fff"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "height"
+                              ,_1: "150px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "cursor"
+                              ,_1: "pointer"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "background-color"
+                              ,_1: "#E80000"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "display"
+                              ,_1: "inline"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "position"
+                              ,_1: "absolute"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "top"
+                              ,_1: A2($Basics._op["++"],
+                              $Basics.toString(h),
+                              "px")}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "left"
+                              ,_1: A2($Basics._op["++"],
+                              $Basics.toString(v),
+                              "px")}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "font-size"
+                              ,_1: "19px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "font-weight"
+                              ,_1: "bold"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "box-shadow"
+                              ,_1: "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)"}]);
+      }();
+   };
+   var init = F3(function (id,
+   placeholder,
+   style) {
+      return {_: {}
+             ,shape: A3($ShapeLayout.init,
+             id,
+             placeholder,
+             style)};
+   });
+   var Model = function (a) {
+      return {_: {},shape: a};
+   };
+   _elm.Symptom.values = {_op: _op
+                         ,Model: Model
+                         ,init: init
+                         ,symptomLayout: symptomLayout
+                         ,view: view};
+   return _elm.Symptom.values;
+};

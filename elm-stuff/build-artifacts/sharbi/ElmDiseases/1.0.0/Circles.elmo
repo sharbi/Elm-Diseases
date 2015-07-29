@@ -1,0 +1,555 @@
+Elm.Circles = Elm.Circles || {};
+Elm.Circles.make = function (_elm) {
+   "use strict";
+   _elm.Circles = _elm.Circles || {};
+   if (_elm.Circles.values)
+   return _elm.Circles.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Circles",
+   $Basics = Elm.Basics.make(_elm),
+   $Disease = Elm.Disease.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $Html$Lazy = Elm.Html.Lazy.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Mouse = Elm.Mouse.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $ShapeLayout = Elm.ShapeLayout.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Symptom = Elm.Symptom.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var delta = A2($Signal.map,
+   function (t) {
+      return t / 1500;
+   },
+   $Time.fps(10));
+   var buttonStyle = F2(function (bool1,
+   bool2) {
+      return function () {
+         var color = bool1 ? "#9c27b0" : bool2 ? "#D32F2F" : "#2196F3";
+         return _L.fromArray([{ctor: "_Tuple2"
+                              ,_0: "background-color"
+                              ,_1: color}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "display"
+                              ,_1: "inline"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "color"
+                              ,_1: "#fff"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "box-shadow"
+                              ,_1: "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "height"
+                              ,_1: "30px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "margin"
+                              ,_1: "0 auto"}]);
+      }();
+   });
+   var drawLines = function (line) {
+      return $Html.fromElement(line);
+   };
+   var addLines = F2(function (loc1,
+   loc2) {
+      return function () {
+         var y = 500 - $Basics.toFloat($Basics.snd(loc2));
+         var x = $Basics.toFloat($Basics.fst(loc2)) - 475;
+         var b = 500 - $Basics.toFloat($Basics.snd(loc1));
+         var a = $Basics.toFloat($Basics.fst(loc1)) - 475;
+         return A3($Graphics$Collage.collage,
+         1000,
+         1000,
+         _L.fromArray([A2($Graphics$Collage.traced,
+         _U.replace([["width",5]],
+         $Graphics$Collage.defaultLine),
+         A2($Graphics$Collage.segment,
+         {ctor: "_Tuple2",_0: a,_1: b},
+         {ctor: "_Tuple2"
+         ,_0: x
+         ,_1: y}))]));
+      }();
+   });
+   var styleForLine = _L.fromArray([{ctor: "_Tuple2"
+                                    ,_0: "height"
+                                    ,_1: "inherit"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "width"
+                                    ,_1: "inherit"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "z-index"
+                                    ,_1: "-2"}]);
+   var lineSpace = F2(function (address,
+   m) {
+      return A2($Html.div,
+      _L.fromArray([$Html$Attributes.style(styleForLine)]),
+      A2($List.map,
+      drawLines,
+      m.lines));
+   });
+   var stylesForShapes = _L.fromArray([{ctor: "_Tuple2"
+                                       ,_0: "height"
+                                       ,_1: "inherit"}
+                                      ,{ctor: "_Tuple2"
+                                       ,_0: "width"
+                                       ,_1: "inherit"}
+                                      ,{ctor: "_Tuple2"
+                                       ,_0: "position"
+                                       ,_1: "absolute"}
+                                      ,{ctor: "_Tuple2"
+                                       ,_0: "z-index"
+                                       ,_1: "1"}]);
+   var drawStyle = _L.fromArray([{ctor: "_Tuple2"
+                                 ,_0: "height"
+                                 ,_1: "1000px"}
+                                ,{ctor: "_Tuple2"
+                                 ,_0: "width"
+                                 ,_1: "1000px"}
+                                ,{ctor: "_Tuple2"
+                                 ,_0: "position"
+                                 ,_1: "relative"}]);
+   var Input = function (a) {
+      return {_: {},point: a};
+   };
+   var userInput = $Signal.sampleOn(delta)(A2($Signal.map,
+   Input,
+   $Mouse.position));
+   var update = F2(function (action,
+   m) {
+      return function () {
+         switch (action.ctor)
+         {case "Create":
+            return function () {
+                 switch (action._0)
+                 {case "disease":
+                    return m.editDisease ? _U.replace([["dId"
+                                                       ,m.dId + 1]
+                                                      ,["name",""]
+                                                      ,["diseases"
+                                                       ,A2($List._op["::"],
+                                                       {ctor: "_Tuple2"
+                                                       ,_0: m.dId
+                                                       ,_1: A3($Disease.init,
+                                                       m.dId,
+                                                       "Disease Name...",
+                                                       $Disease.defaultLayout(action._1))},
+                                                       m.diseases)]
+                                                      ,["diseaseLocations"
+                                                       ,A2($List._op["::"],
+                                                       {ctor: "_Tuple2"
+                                                       ,_0: m.dId
+                                                       ,_1: action._1},
+                                                       m.diseaseLocations)]
+                                                      ,["editDisease"
+                                                       ,$Basics.not(m.editDisease)]
+                                                      ,["editSymptoms"
+                                                       ,$Basics.not(m.editSymptoms)]],
+                      m) : m;
+                    case "symptom":
+                    return m.editSymptoms ? function () {
+                         var loc1 = function (id) {
+                            return A2($List.map,
+                            $Basics.snd,
+                            A2($List.filter,
+                            function (_v10) {
+                               return function () {
+                                  switch (_v10.ctor)
+                                  {case "_Tuple2":
+                                     return _U.eq(_v10._0,id);}
+                                  _U.badCase($moduleName,
+                                  "on line 85, column 73 to 88");
+                               }();
+                            },
+                            m.diseaseLocations));
+                         };
+                         return _U.replace([["sId"
+                                            ,m.sId + 1]
+                                           ,["name",""]
+                                           ,["symptoms"
+                                            ,A2($List._op["::"],
+                                            {ctor: "_Tuple2"
+                                            ,_0: m.sId
+                                            ,_1: A3($Symptom.init,
+                                            m.sId,
+                                            "Symptom Name...",
+                                            $Symptom.symptomLayout(action._1))},
+                                            m.symptoms)]
+                                           ,["symptomLocations"
+                                            ,A2($List._op["::"],
+                                            {ctor: "_Tuple2"
+                                            ,_0: m.sId
+                                            ,_1: action._1},
+                                            m.symptomLocations)]
+                                           ,["lines"
+                                            ,A2($List.map,
+                                            addLines(action._1),
+                                            loc1(m.dId - 1))]],
+                         m);
+                      }() : m;}
+                 _U.badCase($moduleName,
+                 "between lines 70 and 96");
+              }();
+            case "Edit":
+            return _U.replace([["editDisease"
+                               ,$Basics.not(m.editDisease)]],
+              m);
+            case "NoOp": return m;
+            case "Remove":
+            return function () {
+                 switch (action._0)
+                 {case "disease":
+                    return _U.replace([["diseases"
+                                       ,A2($List.filter,
+                                       function (_v15) {
+                                          return function () {
+                                             switch (_v15.ctor)
+                                             {case "_Tuple2":
+                                                return !_U.eq(_v15._0,
+                                                  action._1);}
+                                             _U.badCase($moduleName,
+                                             "on line 117, column 61 to 76");
+                                          }();
+                                       },
+                                       m.diseases)]],
+                      m);
+                    case "symptom":
+                    return _U.replace([["symptoms"
+                                       ,A2($List.filter,
+                                       function (_v19) {
+                                          return function () {
+                                             switch (_v19.ctor)
+                                             {case "_Tuple2":
+                                                return !_U.eq(_v19._0,
+                                                  action._1);}
+                                             _U.badCase($moduleName,
+                                             "on line 120, column 60 to 75");
+                                          }();
+                                       },
+                                       m.symptoms)]],
+                      m);}
+                 _U.badCase($moduleName,
+                 "between lines 115 and 120");
+              }();
+            case "Update":
+            return function () {
+                 switch (action._0)
+                 {case "disease":
+                    return function () {
+                         var updateDisease = function (_v24) {
+                            return function () {
+                               switch (_v24.ctor)
+                               {case "_Tuple2":
+                                  return _U.eq(_v24._0,
+                                    action._1) ? {ctor: "_Tuple2"
+                                                 ,_0: _v24._0
+                                                 ,_1: _U.replace([["shape"
+                                                                  ,A2($ShapeLayout.update,
+                                                                  action._2,
+                                                                  _v24._1.shape)]],
+                                                 _v24._1)} : {ctor: "_Tuple2"
+                                                             ,_0: _v24._0
+                                                             ,_1: _v24._1};}
+                               _U.badCase($moduleName,
+                               "on line 100, column 17 to 164");
+                            }();
+                         };
+                         return _U.replace([["diseases"
+                                            ,A2($List.map,
+                                            updateDisease,
+                                            m.diseases)]],
+                         m);
+                      }();
+                    case "symptom":
+                    return function () {
+                         var updateSymptom = function (_v28) {
+                            return function () {
+                               switch (_v28.ctor)
+                               {case "_Tuple2":
+                                  return _U.eq(_v28._0,
+                                    action._1) ? {ctor: "_Tuple2"
+                                                 ,_0: _v28._0
+                                                 ,_1: _U.replace([["shape"
+                                                                  ,A2($ShapeLayout.update,
+                                                                  action._2,
+                                                                  _v28._1.shape)]],
+                                                 _v28._1)} : {ctor: "_Tuple2"
+                                                             ,_0: _v28._0
+                                                             ,_1: _v28._1};}
+                               _U.badCase($moduleName,
+                               "on line 107, column 13 to 157");
+                            }();
+                         };
+                         return _U.replace([["symptoms"
+                                            ,A2($List.map,
+                                            updateSymptom,
+                                            m.symptoms)]],
+                         m);
+                      }();}
+                 _U.badCase($moduleName,
+                 "between lines 97 and 111");
+              }();
+            case "UpdateTitle":
+            return _U.replace([["name"
+                               ,action._0]],
+              m);}
+         _U.badCase($moduleName,
+         "between lines 63 and 120");
+      }();
+   });
+   var Remove = F2(function (a,b) {
+      return {ctor: "Remove"
+             ,_0: a
+             ,_1: b};
+   });
+   var Edit = {ctor: "Edit"};
+   var buttonBar = F3(function (address,
+   m,
+   input) {
+      return function () {
+         var editButton = A2($Html.button,
+         _L.fromArray([$Html$Attributes.style(A2(buttonStyle,
+                      m.editDisease,
+                      m.editSymptoms))
+                      ,A2($Html$Events.onClick,
+                      address,
+                      Edit)]),
+         _L.fromArray([$Html.text("Create New Disease")]));
+         return A2($Html.header,
+         _L.fromArray([$Html$Attributes.id("header")]),
+         _L.fromArray([A2($Html.section,
+         _L.fromArray([]),
+         _L.fromArray([editButton
+                      ,$Html.fromElement($Graphics$Element.show(input.point))]))]));
+      }();
+   });
+   var AddSymptoms = function (a) {
+      return {ctor: "AddSymptoms"
+             ,_0: a};
+   };
+   var Create = F2(function (a,b) {
+      return {ctor: "Create"
+             ,_0: a
+             ,_1: b};
+   });
+   var Update = F3(function (a,
+   b,
+   c) {
+      return {ctor: "Update"
+             ,_0: a
+             ,_1: b
+             ,_2: c};
+   });
+   var viewDisease = F2(function (address,
+   _v32) {
+      return function () {
+         switch (_v32.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var context = A2($ShapeLayout.Context,
+                 A2($Signal.forwardTo,
+                 address,
+                 A2(Update,"disease",_v32._0)),
+                 A2($Signal.forwardTo,
+                 address,
+                 $Basics.always(A2(Remove,
+                 "disease",
+                 _v32._0))));
+                 return A2($Disease.view,
+                 context,
+                 _v32._1);
+              }();}
+         _U.badCase($moduleName,
+         "between lines 188 and 190");
+      }();
+   });
+   var diseaseSpace = F3(function (address,
+   m,
+   input) {
+      return function () {
+         var loc = input.point;
+         return A2($Html.div,
+         _L.fromArray([$Html$Attributes.style(stylesForShapes)]),
+         A2($List.map,
+         viewDisease(address),
+         m.diseases));
+      }();
+   });
+   var viewSymptom = F2(function (address,
+   _v36) {
+      return function () {
+         switch (_v36.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var context = A2($ShapeLayout.Context,
+                 A2($Signal.forwardTo,
+                 address,
+                 A2(Update,"symptom",_v36._0)),
+                 A2($Signal.forwardTo,
+                 address,
+                 $Basics.always(A2(Remove,
+                 "symptom",
+                 _v36._0))));
+                 return A2($Symptom.view,
+                 context,
+                 _v36._1);
+              }();}
+         _U.badCase($moduleName,
+         "between lines 199 and 201");
+      }();
+   });
+   var symptomSpace = F3(function (address,
+   m,
+   input) {
+      return function () {
+         var loc = input.point;
+         return A2($Html.div,
+         _L.fromArray([$Html$Attributes.style(stylesForShapes)]),
+         A2($List.map,
+         viewSymptom(address),
+         m.symptoms));
+      }();
+   });
+   var UpdateTitle = function (a) {
+      return {ctor: "UpdateTitle"
+             ,_0: a};
+   };
+   var NoOp = {ctor: "NoOp"};
+   var actions = $Signal.mailbox(NoOp);
+   var combinedSpace = F3(function (address,
+   m,
+   input) {
+      return function () {
+         var loc = input.point;
+         var action = m.editDisease ? A2(Create,
+         "disease",
+         loc) : m.editSymptoms ? A2(Create,
+         "symptom",
+         loc) : NoOp;
+         return A2($Html.div,
+         _L.fromArray([A2($Html$Events.onClick,
+                      address,
+                      action)
+                      ,$Html$Attributes.style(drawStyle)]),
+         _L.fromArray([A3(diseaseSpace,
+                      address,
+                      m,
+                      input)
+                      ,A3(symptomSpace,
+                      address,
+                      m,
+                      input)
+                      ,A2(lineSpace,address,m)]));
+      }();
+   });
+   var view = F3(function (address,
+   m,
+   input) {
+      return A2($Html.body,
+      _L.fromArray([$Html$Attributes.$class("disease-map-wrapper")
+                   ,$Html$Attributes.style(_L.fromArray([{ctor: "_Tuple2"
+                                                         ,_0: "position"
+                                                         ,_1: "absolute"}]))]),
+      _L.fromArray([A2($Html.section,
+      _L.fromArray([$Html$Attributes.id("disease-map-app")]),
+      _L.fromArray([A4($Html$Lazy.lazy3,
+                   buttonBar,
+                   address,
+                   m,
+                   input)
+                   ,A4($Html$Lazy.lazy3,
+                   combinedSpace,
+                   address,
+                   m,
+                   input)]))]));
+   });
+   var initialModel = {_: {}
+                      ,dId: 0
+                      ,diseaseLocations: _L.fromArray([])
+                      ,diseases: _L.fromArray([])
+                      ,editDisease: false
+                      ,editSymptoms: false
+                      ,lines: _L.fromArray([])
+                      ,name: ""
+                      ,sId: 0
+                      ,symptomLocations: _L.fromArray([])
+                      ,symptoms: _L.fromArray([])};
+   var model = A3($Signal.foldp,
+   update,
+   initialModel,
+   actions.signal);
+   var main = A2($Signal._op["~"],
+   A2($Signal._op["<~"],
+   view(actions.address),
+   model),
+   userInput);
+   var Model = function (a) {
+      return function (b) {
+         return function (c) {
+            return function (d) {
+               return function (e) {
+                  return function (f) {
+                     return function (g) {
+                        return function (h) {
+                           return function (i) {
+                              return function (j) {
+                                 return {_: {}
+                                        ,dId: f
+                                        ,diseaseLocations: h
+                                        ,diseases: a
+                                        ,editDisease: c
+                                        ,editSymptoms: d
+                                        ,lines: j
+                                        ,name: e
+                                        ,sId: g
+                                        ,symptomLocations: i
+                                        ,symptoms: b};
+                              };
+                           };
+                        };
+                     };
+                  };
+               };
+            };
+         };
+      };
+   };
+   _elm.Circles.values = {_op: _op
+                         ,Model: Model
+                         ,initialModel: initialModel
+                         ,NoOp: NoOp
+                         ,UpdateTitle: UpdateTitle
+                         ,Update: Update
+                         ,Create: Create
+                         ,AddSymptoms: AddSymptoms
+                         ,Edit: Edit
+                         ,Remove: Remove
+                         ,actions: actions
+                         ,update: update
+                         ,Input: Input
+                         ,drawStyle: drawStyle
+                         ,view: view
+                         ,buttonBar: buttonBar
+                         ,stylesForShapes: stylesForShapes
+                         ,styleForLine: styleForLine
+                         ,combinedSpace: combinedSpace
+                         ,diseaseSpace: diseaseSpace
+                         ,lineSpace: lineSpace
+                         ,viewDisease: viewDisease
+                         ,symptomSpace: symptomSpace
+                         ,viewSymptom: viewSymptom
+                         ,addLines: addLines
+                         ,drawLines: drawLines
+                         ,buttonStyle: buttonStyle
+                         ,main: main
+                         ,delta: delta
+                         ,userInput: userInput
+                         ,model: model};
+   return _elm.Circles.values;
+};

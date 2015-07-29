@@ -1,0 +1,157 @@
+Elm.Disease = Elm.Disease || {};
+Elm.Disease.make = function (_elm) {
+   "use strict";
+   _elm.Disease = _elm.Disease || {};
+   if (_elm.Disease.values)
+   return _elm.Disease.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Disease",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $ShapeLayout = Elm.ShapeLayout.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Symptom = Elm.Symptom.make(_elm);
+   var view = F2(function (shapeContext,
+   m) {
+      return A2($ShapeLayout.view,
+      shapeContext,
+      m.shape);
+   });
+   var update = F2(function (action,
+   m) {
+      return function () {
+         switch (action.ctor)
+         {case "AddSymptoms":
+            return m.editSymptoms ? _U.replace([["uid"
+                                                ,m.uid + 1]
+                                               ,["symptoms"
+                                                ,A2($List._op["::"],
+                                                {ctor: "_Tuple2"
+                                                ,_0: m.uid
+                                                ,_1: A3($Symptom.init,
+                                                m.uid,
+                                                "Symptom name...",
+                                                $Symptom.symptomLayout(action._0))},
+                                                m.symptoms)]
+                                               ,["locations"
+                                                ,A2($List._op["::"],
+                                                {ctor: "_Tuple2"
+                                                ,_0: m.uid
+                                                ,_1: action._0},
+                                                m.locations)]
+                                               ,["editSymptoms"
+                                                ,$Basics.not(m.editSymptoms)]],
+              m) : m;
+            case "SetBool":
+            return _U.replace([["editSymptoms"
+                               ,$Basics.not(m.editSymptoms)]],
+              m);}
+         _U.badCase($moduleName,
+         "between lines 68 and 80");
+      }();
+   });
+   var SetBool = {ctor: "SetBool"};
+   var AddSymptoms = function (a) {
+      return {ctor: "AddSymptoms"
+             ,_0: a};
+   };
+   var Context = function (a) {
+      return {_: {},actions: a};
+   };
+   var defaultLayout = function (loc) {
+      return function () {
+         var h = $Basics.snd(loc) - 75;
+         var v = $Basics.fst(loc) - 50;
+         return _L.fromArray([{ctor: "_Tuple2"
+                              ,_0: "border-radius"
+                              ,_1: "1000px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "width"
+                              ,_1: "150px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "border"
+                              ,_1: "0"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "text-align"
+                              ,_1: "center"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "line-height"
+                              ,_1: "100px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "color"
+                              ,_1: "#fff"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "height"
+                              ,_1: "150px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "cursor"
+                              ,_1: "pointer"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "background-color"
+                              ,_1: "#9400D3"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "display"
+                              ,_1: "inline"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "position"
+                              ,_1: "absolute"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "top"
+                              ,_1: A2($Basics._op["++"],
+                              $Basics.toString(h),
+                              "px")}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "left"
+                              ,_1: A2($Basics._op["++"],
+                              $Basics.toString(v),
+                              "px")}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "font-size"
+                              ,_1: "19px"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "font-weight"
+                              ,_1: "bold"}
+                             ,{ctor: "_Tuple2"
+                              ,_0: "box-shadow"
+                              ,_1: "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)"}]);
+      }();
+   };
+   var init = F3(function (id,
+   placeholder,
+   style) {
+      return {_: {}
+             ,editSymptoms: false
+             ,locations: _L.fromArray([])
+             ,shape: A3($ShapeLayout.init,
+             id,
+             placeholder,
+             style)
+             ,symptoms: _L.fromArray([])
+             ,uid: 0};
+   });
+   var Model = F5(function (a,
+   b,
+   c,
+   d,
+   e) {
+      return {_: {}
+             ,editSymptoms: d
+             ,locations: c
+             ,shape: a
+             ,symptoms: b
+             ,uid: e};
+   });
+   _elm.Disease.values = {_op: _op
+                         ,init: init
+                         ,view: view
+                         ,defaultLayout: defaultLayout
+                         ,update: update
+                         ,Model: Model};
+   return _elm.Disease.values;
+};
