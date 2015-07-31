@@ -7,10 +7,12 @@ import Color as C exposing (..)
 import Signal as S exposing (..)
 import Window as W
 import Mouse as M
+import Maybe
 import Time exposing (..)
 import Text exposing (..)
 import Html.Lazy exposing (..)
 import Disease as D exposing (..)
+import Dict exposing (..)
 import String exposing (..)
 import Keyboard as K exposing (..)
 import Graphics.Element exposing (..)
@@ -26,12 +28,11 @@ type alias Model =
   , editDisease : Bool
   , editSymptoms : Bool
   , name : String
-  , dId : Int
-  , sId : Int
-  , diseaseLocations : List (ID, (Int, Int))
-  , symptomLocations : List (ID, (Int, Int))
+  , dId : ID
+  , sId : ID
+  , diseaseLocations : Dict ID (Int, Int)
+  , symptomLocations : Dict ID (Int, Int)
   , lines : List (Element)
-  , allLines : List (Element)
   }
 
 initialModel = 
@@ -42,20 +43,23 @@ initialModel =
   , name = ""
   , dId = 0
   , sId = 0
-  , diseaseLocations = []
-  , symptomLocations = []
+  , diseaseLocations = Dict.empty
+  , symptomLocations = Dict.empty
   , lines = []
-  , allLines = []
   }
 
 type Action
   = NoOp
   | UpdateTitle String
-  | Update String ID ShapeLayout.Action
-  | Create String (Int, Int)
+  | Update Shape ID ShapeLayout.Action
+  | Create Shape (Int, Int)
   | AddSymptoms (Int, Int)
   | Edit
-  | Remove String ID
+  | Remove Shape ID
+
+type Shape
+  = Disease
+  | Symptom
 
 actions : Mailbox Action
 actions = S.mailbox NoOp
@@ -68,44 +72,42 @@ update action m =
     UpdateTitle str ->
       { m | name <- str }
 
-    Create list loc ->
-      case list of
-        "disease" ->
+    Create shape loc ->
+      case shape of
+        Disease ->
           if m.editDisease then
             { m | 
               dId <- m.dId + 1,
               name <- "",
               diseases <- (m.dId, (D.init m.dId "Disease Name..." (D.defaultLayout loc))) :: m.diseases,
-              diseaseLocations <- (m.dId, loc) :: m.diseaseLocations,
+              diseaseLocations <- insert m.dId loc m.diseaseLocations,
               editDisease <- not m.editDisease,
               editSymptoms <- not m.editSymptoms
             }
 
           else m
-        "symptom" ->
+        Symptom ->
           if m.editSymptoms then
-            let loc1 id = List.map snd (List.filter (\(diseaseID, _) -> diseaseID == id) m.diseaseLocations)
-            in  { m | 
-                  sId <- m.sId + 1,
-                  name <- "",
-                  symptoms <- (m.sId, (Symptom.init m.sId "Symptom Name..." (Symptom.symptomLayout loc))) :: m.symptoms,
-                  symptomLocations <- (m.sId, loc) :: m.symptomLocations,
-                  lines <- (List.map (addLines loc) (loc1 (m.dId - 1))),
-                  allLines <- lines :: m.allLines
-                }
+            { m | 
+                sId <- m.sId + 1,
+                name <- "",
+                symptoms <- (m.sId, (Symptom.init m.sId "Symptom Name..." (Symptom.symptomLayout loc))) :: m.symptoms,
+                symptomLocations <- insert m.sId loc m.symptomLocations,
+                lines <- (addLines m.dId m.sId m.diseaseLocations m.symptomLocations) :: m.lines
+            }
 
           else m
 
-    Update list id shapeAction ->
-      case list of 
-        "disease" ->
+    Update shape id shapeAction ->
+      case shape of 
+        Disease ->
           let updateDisease (diseaseID, diseaseModel) =
                 if diseaseID == id then (diseaseID,  { diseaseModel | shape <- ShapeLayout.update shapeAction diseaseModel.shape } ) else (diseaseID, diseaseModel)
 
           in
             { m | diseases <- List.map updateDisease m.diseases }
 
-        "symptom" ->
+        Symptom ->
           let updateSymptom (symptomID, symptomModel) =
             if symptomID == id then (symptomID, { symptomModel | shape <- ShapeLayout.update shapeAction symptomModel.shape}) else (symptomID, symptomModel)
           in { m | symptoms <- List.map updateSymptom m.symptoms }
@@ -114,18 +116,17 @@ update action m =
     Edit ->
       { m | editDisease <- not m.editDisease }
 
-    Remove list id ->
-      case list of
-        "disease" ->
+    Remove shape id ->
+      case shape of
+        Disease ->
           { m | diseases <- List.filter (\(diseaseID, _) -> diseaseID /= id) m.diseases }
 
-        "symptom" ->
+        Symptom ->
           {m | symptoms <- List.filter (\(symptomID, _) -> symptomID /= id) m.symptoms }
 
 type alias Input = {
     point : (Int, Int)
   }
-
 
 drawStyle : List(String, String)
 drawStyle =
@@ -174,7 +175,7 @@ styleForLine =
 combinedSpace : Address Action -> Model -> Input -> Html
 combinedSpace address m input =
   let loc = input.point
-      action = if m.editDisease then (Create "disease" loc) else if m.editSymptoms then (Create "symptom" loc) else NoOp
+      action = if m.editDisease then (Create Disease loc) else if m.editSymptoms then (Create Symptom loc) else NoOp
   in div [ onClick address action, Html.Attributes.style drawStyle] [(diseaseSpace address m input), (symptomSpace address m input), (lineSpace address m)]
 
 diseaseSpace : Address Action -> Model -> Input -> Html
@@ -184,12 +185,12 @@ diseaseSpace address m input=
 
 lineSpace : Address Action -> Model -> Html
 lineSpace address m =
-  div [Html.Attributes.style styleForLine ] (List.map drawLines m.allLines)
+  div [Html.Attributes.style styleForLine ] (List.map drawLines m.lines)
 
 viewDisease : Address Action -> (ID, D.Model) -> Html
 viewDisease address (id, model) =
   let context =
-    ShapeLayout.Context (S.forwardTo address (Update "disease" id)) (S.forwardTo address (always (Remove "disease" id)))
+    ShapeLayout.Context (S.forwardTo address (Update Disease id)) (S.forwardTo address (always (Remove Disease id)))
   in D.view context model
 
 symptomSpace : Address Action -> Model -> Input -> Html
@@ -200,16 +201,18 @@ symptomSpace address m input =
 viewSymptom : Address Action -> (ID, Symptom.Model) -> Html
 viewSymptom address (id, model) =
   let context =
-    ShapeLayout.Context (S.forwardTo address (Update "symptom" id)) (S.forwardTo address (always (Remove "symptom" id)))
+    ShapeLayout.Context (S.forwardTo address (Update Symptom id)) (S.forwardTo address (always (Remove Symptom id)))
   in Symptom.view context model
 
-addLines : (Int, Int) -> (Int, Int) ->  Element
-addLines loc1 loc2 =
-  let a = Basics.toFloat (fst loc1) - 475
-      b = 500 - Basics.toFloat (snd loc1)
-      x = Basics.toFloat (fst loc2) - 475
-      y = 500 - Basics.toFloat (snd loc2)
-  in collage 1000 1000 [traced {defaultLine | width <- 5} (segment (a, b) (x, y))] 
+addLines : ID -> ID -> Dict ID (Int, Int) -> Dict ID (Int, Int) -> Element
+addLines dId sId dLocs sLocs =
+  let dLoc = Maybe.withDefault (0, 0) (get dId dLocs)
+      sLoc = Maybe.withDefault (0, 0) (get sId sLocs)
+      a = (Basics.toFloat (fst dLoc))
+      b = (Basics.toFloat (snd dLoc))
+      c = (Basics.toFloat (fst sLoc))
+      d = (Basics.toFloat (snd sLoc))
+  in collage 1000 1000 [traced {defaultLine | width <- 5} (segment ((a - 500), (450 - b)) ((c - 500), (450 - d)))] 
 
 
 drawLines : Element -> Html

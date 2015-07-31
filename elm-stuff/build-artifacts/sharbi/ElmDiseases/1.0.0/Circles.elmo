@@ -10,6 +10,7 @@ Elm.Circles.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Circles",
    $Basics = Elm.Basics.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
    $Disease = Elm.Disease.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
@@ -57,13 +58,21 @@ Elm.Circles.make = function (_elm) {
    var drawLines = function (line) {
       return $Html.fromElement(line);
    };
-   var addLines = F2(function (loc1,
-   loc2) {
+   var addLines = F4(function (dId,
+   sId,
+   dLocs,
+   sLocs) {
       return function () {
-         var y = 500 - $Basics.toFloat($Basics.snd(loc2));
-         var x = $Basics.toFloat($Basics.fst(loc2)) - 475;
-         var b = 500 - $Basics.toFloat($Basics.snd(loc1));
-         var a = $Basics.toFloat($Basics.fst(loc1)) - 475;
+         var sLoc = A2($Maybe.withDefault,
+         {ctor: "_Tuple2",_0: 0,_1: 0},
+         A2($Dict.get,sId,sLocs));
+         var c = $Basics.toFloat($Basics.fst(sLoc));
+         var d = $Basics.toFloat($Basics.snd(sLoc));
+         var dLoc = A2($Maybe.withDefault,
+         {ctor: "_Tuple2",_0: 0,_1: 0},
+         A2($Dict.get,dId,dLocs));
+         var a = $Basics.toFloat($Basics.fst(dLoc));
+         var b = $Basics.toFloat($Basics.snd(dLoc));
          return A3($Graphics$Collage.collage,
          1000,
          1000,
@@ -71,10 +80,12 @@ Elm.Circles.make = function (_elm) {
          _U.replace([["width",5]],
          $Graphics$Collage.defaultLine),
          A2($Graphics$Collage.segment,
-         {ctor: "_Tuple2",_0: a,_1: b},
          {ctor: "_Tuple2"
-         ,_0: x
-         ,_1: y}))]));
+         ,_0: a - 500
+         ,_1: 450 - b},
+         {ctor: "_Tuple2"
+         ,_0: c - 500
+         ,_1: 450 - d}))]));
       }();
    });
    var styleForLine = _L.fromArray([{ctor: "_Tuple2"
@@ -127,8 +138,8 @@ Elm.Circles.make = function (_elm) {
          switch (action.ctor)
          {case "Create":
             return function () {
-                 switch (action._0)
-                 {case "disease":
+                 switch (action._0.ctor)
+                 {case "Disease":
                     return m.editDisease ? _U.replace([["dId"
                                                        ,m.dId + 1]
                                                       ,["name",""]
@@ -142,59 +153,44 @@ Elm.Circles.make = function (_elm) {
                                                        $Disease.defaultLayout(action._1))},
                                                        m.diseases)]
                                                       ,["diseaseLocations"
-                                                       ,A2($List._op["::"],
-                                                       {ctor: "_Tuple2"
-                                                       ,_0: m.dId
-                                                       ,_1: action._1},
+                                                       ,A3($Dict.insert,
+                                                       m.dId,
+                                                       action._1,
                                                        m.diseaseLocations)]
                                                       ,["editDisease"
                                                        ,$Basics.not(m.editDisease)]
                                                       ,["editSymptoms"
                                                        ,$Basics.not(m.editSymptoms)]],
                       m) : m;
-                    case "symptom":
-                    return m.editSymptoms ? function () {
-                         var loc1 = function (id) {
-                            return A2($List.map,
-                            $Basics.snd,
-                            A2($List.filter,
-                            function (_v10) {
-                               return function () {
-                                  switch (_v10.ctor)
-                                  {case "_Tuple2":
-                                     return _U.eq(_v10._0,id);}
-                                  _U.badCase($moduleName,
-                                  "on line 85, column 73 to 88");
-                               }();
-                            },
-                            m.diseaseLocations));
-                         };
-                         return _U.replace([["sId"
-                                            ,m.sId + 1]
-                                           ,["name",""]
-                                           ,["symptoms"
-                                            ,A2($List._op["::"],
-                                            {ctor: "_Tuple2"
-                                            ,_0: m.sId
-                                            ,_1: A3($Symptom.init,
-                                            m.sId,
-                                            "Symptom Name...",
-                                            $Symptom.symptomLayout(action._1))},
-                                            m.symptoms)]
-                                           ,["symptomLocations"
-                                            ,A2($List._op["::"],
-                                            {ctor: "_Tuple2"
-                                            ,_0: m.sId
-                                            ,_1: action._1},
-                                            m.symptomLocations)]
-                                           ,["lines"
-                                            ,A2($List.map,
-                                            addLines(action._1),
-                                            loc1(m.dId - 1))]],
-                         m);
-                      }() : m;}
+                    case "Symptom":
+                    return m.editSymptoms ? _U.replace([["sId"
+                                                        ,m.sId + 1]
+                                                       ,["name",""]
+                                                       ,["symptoms"
+                                                        ,A2($List._op["::"],
+                                                        {ctor: "_Tuple2"
+                                                        ,_0: m.sId
+                                                        ,_1: A3($Symptom.init,
+                                                        m.sId,
+                                                        "Symptom Name...",
+                                                        $Symptom.symptomLayout(action._1))},
+                                                        m.symptoms)]
+                                                       ,["symptomLocations"
+                                                        ,A3($Dict.insert,
+                                                        m.sId,
+                                                        action._1,
+                                                        m.symptomLocations)]
+                                                       ,["lines"
+                                                        ,A2($List._op["::"],
+                                                        A4(addLines,
+                                                        m.dId,
+                                                        m.sId,
+                                                        m.diseaseLocations,
+                                                        m.symptomLocations),
+                                                        m.lines)]],
+                      m) : m;}
                  _U.badCase($moduleName,
-                 "between lines 70 and 96");
+                 "between lines 76 and 101");
               }();
             case "Edit":
             return _U.replace([["editDisease"
@@ -203,9 +199,24 @@ Elm.Circles.make = function (_elm) {
             case "NoOp": return m;
             case "Remove":
             return function () {
-                 switch (action._0)
-                 {case "disease":
+                 switch (action._0.ctor)
+                 {case "Disease":
                     return _U.replace([["diseases"
+                                       ,A2($List.filter,
+                                       function (_v11) {
+                                          return function () {
+                                             switch (_v11.ctor)
+                                             {case "_Tuple2":
+                                                return !_U.eq(_v11._0,
+                                                  action._1);}
+                                             _U.badCase($moduleName,
+                                             "on line 122, column 61 to 76");
+                                          }();
+                                       },
+                                       m.diseases)]],
+                      m);
+                    case "Symptom":
+                    return _U.replace([["symptoms"
                                        ,A2($List.filter,
                                        function (_v15) {
                                           return function () {
@@ -214,35 +225,46 @@ Elm.Circles.make = function (_elm) {
                                                 return !_U.eq(_v15._0,
                                                   action._1);}
                                              _U.badCase($moduleName,
-                                             "on line 117, column 61 to 76");
-                                          }();
-                                       },
-                                       m.diseases)]],
-                      m);
-                    case "symptom":
-                    return _U.replace([["symptoms"
-                                       ,A2($List.filter,
-                                       function (_v19) {
-                                          return function () {
-                                             switch (_v19.ctor)
-                                             {case "_Tuple2":
-                                                return !_U.eq(_v19._0,
-                                                  action._1);}
-                                             _U.badCase($moduleName,
-                                             "on line 120, column 60 to 75");
+                                             "on line 125, column 60 to 75");
                                           }();
                                        },
                                        m.symptoms)]],
                       m);}
                  _U.badCase($moduleName,
-                 "between lines 115 and 120");
+                 "between lines 120 and 125");
               }();
             case "Update":
             return function () {
-                 switch (action._0)
-                 {case "disease":
+                 switch (action._0.ctor)
+                 {case "Disease":
                     return function () {
-                         var updateDisease = function (_v24) {
+                         var updateDisease = function (_v20) {
+                            return function () {
+                               switch (_v20.ctor)
+                               {case "_Tuple2":
+                                  return _U.eq(_v20._0,
+                                    action._1) ? {ctor: "_Tuple2"
+                                                 ,_0: _v20._0
+                                                 ,_1: _U.replace([["shape"
+                                                                  ,A2($ShapeLayout.update,
+                                                                  action._2,
+                                                                  _v20._1.shape)]],
+                                                 _v20._1)} : {ctor: "_Tuple2"
+                                                             ,_0: _v20._0
+                                                             ,_1: _v20._1};}
+                               _U.badCase($moduleName,
+                               "on line 105, column 17 to 164");
+                            }();
+                         };
+                         return _U.replace([["diseases"
+                                            ,A2($List.map,
+                                            updateDisease,
+                                            m.diseases)]],
+                         m);
+                      }();
+                    case "Symptom":
+                    return function () {
+                         var updateSymptom = function (_v24) {
                             return function () {
                                switch (_v24.ctor)
                                {case "_Tuple2":
@@ -257,33 +279,7 @@ Elm.Circles.make = function (_elm) {
                                                              ,_0: _v24._0
                                                              ,_1: _v24._1};}
                                _U.badCase($moduleName,
-                               "on line 100, column 17 to 164");
-                            }();
-                         };
-                         return _U.replace([["diseases"
-                                            ,A2($List.map,
-                                            updateDisease,
-                                            m.diseases)]],
-                         m);
-                      }();
-                    case "symptom":
-                    return function () {
-                         var updateSymptom = function (_v28) {
-                            return function () {
-                               switch (_v28.ctor)
-                               {case "_Tuple2":
-                                  return _U.eq(_v28._0,
-                                    action._1) ? {ctor: "_Tuple2"
-                                                 ,_0: _v28._0
-                                                 ,_1: _U.replace([["shape"
-                                                                  ,A2($ShapeLayout.update,
-                                                                  action._2,
-                                                                  _v28._1.shape)]],
-                                                 _v28._1)} : {ctor: "_Tuple2"
-                                                             ,_0: _v28._0
-                                                             ,_1: _v28._1};}
-                               _U.badCase($moduleName,
-                               "on line 107, column 13 to 157");
+                               "on line 112, column 13 to 157");
                             }();
                          };
                          return _U.replace([["symptoms"
@@ -293,16 +289,18 @@ Elm.Circles.make = function (_elm) {
                          m);
                       }();}
                  _U.badCase($moduleName,
-                 "between lines 97 and 111");
+                 "between lines 102 and 116");
               }();
             case "UpdateTitle":
             return _U.replace([["name"
                                ,action._0]],
               m);}
          _U.badCase($moduleName,
-         "between lines 63 and 120");
+         "between lines 69 and 125");
       }();
    });
+   var Symptom = {ctor: "Symptom"};
+   var Disease = {ctor: "Disease"};
    var Remove = F2(function (a,b) {
       return {ctor: "Remove"
              ,_0: a
@@ -347,26 +345,26 @@ Elm.Circles.make = function (_elm) {
              ,_2: c};
    });
    var viewDisease = F2(function (address,
-   _v32) {
+   _v28) {
       return function () {
-         switch (_v32.ctor)
+         switch (_v28.ctor)
          {case "_Tuple2":
             return function () {
                  var context = A2($ShapeLayout.Context,
                  A2($Signal.forwardTo,
                  address,
-                 A2(Update,"disease",_v32._0)),
+                 A2(Update,Disease,_v28._0)),
                  A2($Signal.forwardTo,
                  address,
                  $Basics.always(A2(Remove,
-                 "disease",
-                 _v32._0))));
+                 Disease,
+                 _v28._0))));
                  return A2($Disease.view,
                  context,
-                 _v32._1);
+                 _v28._1);
               }();}
          _U.badCase($moduleName,
-         "between lines 188 and 190");
+         "between lines 192 and 194");
       }();
    });
    var diseaseSpace = F3(function (address,
@@ -382,26 +380,26 @@ Elm.Circles.make = function (_elm) {
       }();
    });
    var viewSymptom = F2(function (address,
-   _v36) {
+   _v32) {
       return function () {
-         switch (_v36.ctor)
+         switch (_v32.ctor)
          {case "_Tuple2":
             return function () {
                  var context = A2($ShapeLayout.Context,
                  A2($Signal.forwardTo,
                  address,
-                 A2(Update,"symptom",_v36._0)),
+                 A2(Update,Symptom,_v32._0)),
                  A2($Signal.forwardTo,
                  address,
                  $Basics.always(A2(Remove,
-                 "symptom",
-                 _v36._0))));
+                 Symptom,
+                 _v32._0))));
                  return A2($Symptom.view,
                  context,
-                 _v36._1);
+                 _v32._1);
               }();}
          _U.badCase($moduleName,
-         "between lines 199 and 201");
+         "between lines 203 and 205");
       }();
    });
    var symptomSpace = F3(function (address,
@@ -428,9 +426,9 @@ Elm.Circles.make = function (_elm) {
       return function () {
          var loc = input.point;
          var action = m.editDisease ? A2(Create,
-         "disease",
+         Disease,
          loc) : m.editSymptoms ? A2(Create,
-         "symptom",
+         Symptom,
          loc) : NoOp;
          return A2($Html.div,
          _L.fromArray([A2($Html$Events.onClick,
@@ -471,14 +469,14 @@ Elm.Circles.make = function (_elm) {
    });
    var initialModel = {_: {}
                       ,dId: 0
-                      ,diseaseLocations: _L.fromArray([])
+                      ,diseaseLocations: $Dict.empty
                       ,diseases: _L.fromArray([])
                       ,editDisease: false
                       ,editSymptoms: false
                       ,lines: _L.fromArray([])
                       ,name: ""
                       ,sId: 0
-                      ,symptomLocations: _L.fromArray([])
+                      ,symptomLocations: $Dict.empty
                       ,symptoms: _L.fromArray([])};
    var model = A3($Signal.foldp,
    update,
@@ -530,6 +528,8 @@ Elm.Circles.make = function (_elm) {
                          ,AddSymptoms: AddSymptoms
                          ,Edit: Edit
                          ,Remove: Remove
+                         ,Disease: Disease
+                         ,Symptom: Symptom
                          ,actions: actions
                          ,update: update
                          ,Input: Input
