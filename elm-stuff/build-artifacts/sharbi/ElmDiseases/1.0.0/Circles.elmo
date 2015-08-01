@@ -66,13 +66,13 @@ Elm.Circles.make = function (_elm) {
          var sLoc = A2($Maybe.withDefault,
          {ctor: "_Tuple2",_0: 0,_1: 0},
          A2($Dict.get,sId,sLocs));
-         var c = $Basics.toFloat($Basics.fst(sLoc));
-         var d = $Basics.toFloat($Basics.snd(sLoc));
+         var c = $Basics.toFloat($Basics.fst(sLoc)) - 450;
+         var d = 500 - $Basics.toFloat($Basics.snd(sLoc));
          var dLoc = A2($Maybe.withDefault,
          {ctor: "_Tuple2",_0: 0,_1: 0},
          A2($Dict.get,dId,dLocs));
-         var a = $Basics.toFloat($Basics.fst(dLoc));
-         var b = $Basics.toFloat($Basics.snd(dLoc));
+         var a = $Basics.toFloat($Basics.fst(dLoc)) - 450;
+         var b = 500 - $Basics.toFloat($Basics.snd(dLoc));
          return A3($Graphics$Collage.collage,
          1000,
          1000,
@@ -80,12 +80,10 @@ Elm.Circles.make = function (_elm) {
          _U.replace([["width",5]],
          $Graphics$Collage.defaultLine),
          A2($Graphics$Collage.segment,
+         {ctor: "_Tuple2",_0: a,_1: b},
          {ctor: "_Tuple2"
-         ,_0: a - 500
-         ,_1: 450 - b},
-         {ctor: "_Tuple2"
-         ,_0: c - 500
-         ,_1: 450 - d}))]));
+         ,_0: c
+         ,_1: d}))]));
       }();
    });
    var styleForLine = _L.fromArray([{ctor: "_Tuple2"
@@ -183,14 +181,14 @@ Elm.Circles.make = function (_elm) {
                                                        ,["lines"
                                                         ,A2($List._op["::"],
                                                         A4(addLines,
-                                                        m.dId,
-                                                        m.sId,
+                                                        m.dId - 1,
+                                                        m.sId - 1,
                                                         m.diseaseLocations,
                                                         m.symptomLocations),
                                                         m.lines)]],
                       m) : m;}
                  _U.badCase($moduleName,
-                 "between lines 76 and 101");
+                 "between lines 77 and 102");
               }();
             case "Edit":
             return _U.replace([["editDisease"
@@ -210,7 +208,7 @@ Elm.Circles.make = function (_elm) {
                                                 return !_U.eq(_v11._0,
                                                   action._1);}
                                              _U.badCase($moduleName,
-                                             "on line 122, column 61 to 76");
+                                             "on line 123, column 61 to 76");
                                           }();
                                        },
                                        m.diseases)]],
@@ -225,13 +223,13 @@ Elm.Circles.make = function (_elm) {
                                                 return !_U.eq(_v15._0,
                                                   action._1);}
                                              _U.badCase($moduleName,
-                                             "on line 125, column 60 to 75");
+                                             "on line 126, column 60 to 75");
                                           }();
                                        },
                                        m.symptoms)]],
                       m);}
                  _U.badCase($moduleName,
-                 "between lines 120 and 125");
+                 "between lines 121 and 126");
               }();
             case "Update":
             return function () {
@@ -253,7 +251,7 @@ Elm.Circles.make = function (_elm) {
                                                              ,_0: _v20._0
                                                              ,_1: _v20._1};}
                                _U.badCase($moduleName,
-                               "on line 105, column 17 to 164");
+                               "on line 106, column 17 to 164");
                             }();
                          };
                          return _U.replace([["diseases"
@@ -279,7 +277,7 @@ Elm.Circles.make = function (_elm) {
                                                              ,_0: _v24._0
                                                              ,_1: _v24._1};}
                                _U.badCase($moduleName,
-                               "on line 112, column 13 to 157");
+                               "on line 113, column 13 to 157");
                             }();
                          };
                          return _U.replace([["symptoms"
@@ -289,14 +287,14 @@ Elm.Circles.make = function (_elm) {
                          m);
                       }();}
                  _U.badCase($moduleName,
-                 "between lines 102 and 116");
+                 "between lines 103 and 117");
               }();
             case "UpdateTitle":
             return _U.replace([["name"
                                ,action._0]],
               m);}
          _U.badCase($moduleName,
-         "between lines 69 and 125");
+         "between lines 70 and 126");
       }();
    });
    var Symptom = {ctor: "Symptom"};
@@ -324,7 +322,8 @@ Elm.Circles.make = function (_elm) {
          _L.fromArray([A2($Html.section,
          _L.fromArray([]),
          _L.fromArray([editButton
-                      ,$Html.fromElement($Graphics$Element.show(input.point))]))]));
+                      ,$Html.fromElement($Graphics$Element.show(m.dId))
+                      ,$Html.fromElement($Graphics$Element.show(m.sId))]))]));
       }();
    });
    var AddSymptoms = function (a) {
@@ -364,7 +363,7 @@ Elm.Circles.make = function (_elm) {
                  _v28._1);
               }();}
          _U.badCase($moduleName,
-         "between lines 192 and 194");
+         "between lines 194 and 196");
       }();
    });
    var diseaseSpace = F3(function (address,
@@ -399,7 +398,7 @@ Elm.Circles.make = function (_elm) {
                  _v32._1);
               }();}
          _U.badCase($moduleName,
-         "between lines 203 and 205");
+         "between lines 205 and 207");
       }();
    });
    var symptomSpace = F3(function (address,

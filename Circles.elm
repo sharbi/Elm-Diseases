@@ -19,6 +19,7 @@ import Graphics.Element exposing (..)
 import Graphics.Collage exposing (..)
 import ShapeLayout exposing (..)
 import Symptom exposing (..)
+import Debug exposing (..)
 
 type alias ID = Int
 
@@ -93,7 +94,7 @@ update action m =
                 name <- "",
                 symptoms <- (m.sId, (Symptom.init m.sId "Symptom Name..." (Symptom.symptomLayout loc))) :: m.symptoms,
                 symptomLocations <- insert m.sId loc m.symptomLocations,
-                lines <- (addLines m.dId m.sId m.diseaseLocations m.symptomLocations) :: m.lines
+                lines <- (addLines (m.dId - 1) (m.sId - 1) m.diseaseLocations m.symptomLocations) :: m.lines
             }
 
           else m
@@ -153,7 +154,8 @@ buttonBar address m input =
      Html.header [ id "header" ]
     [ section []
       [ editButton
-      , fromElement (show input.point)
+      , fromElement (show m.dId)
+      , fromElement (show m.sId)
       ]
     ]
 
@@ -208,11 +210,11 @@ addLines : ID -> ID -> Dict ID (Int, Int) -> Dict ID (Int, Int) -> Element
 addLines dId sId dLocs sLocs =
   let dLoc = Maybe.withDefault (0, 0) (get dId dLocs)
       sLoc = Maybe.withDefault (0, 0) (get sId sLocs)
-      a = (Basics.toFloat (fst dLoc))
-      b = (Basics.toFloat (snd dLoc))
-      c = (Basics.toFloat (fst sLoc))
-      d = (Basics.toFloat (snd sLoc))
-  in collage 1000 1000 [traced {defaultLine | width <- 5} (segment ((a - 500), (450 - b)) ((c - 500), (450 - d)))] 
+      a = (Basics.toFloat (fst dLoc) - 450)
+      b = (500 - Basics.toFloat (snd dLoc))
+      c = (Basics.toFloat (fst sLoc) - 450)
+      d = (500 - Basics.toFloat (snd sLoc))
+  in collage 1000 1000 [traced {defaultLine | width <- 5} (segment (a, b) (c, d))] 
 
 
 drawLines : Element -> Html
