@@ -98,15 +98,12 @@ update action m =
         { m | titles <- newTitle } -}
 
     Create nodeType loc ->
-      let newModel nodeType = { m | 
-                        id <- m.id + 1,
-                        nodes <- (A.push (nodeInit m.id loc nodeType) m.nodes),
-                        editDisease <- not m.editDisease,
-                        editSymptoms <- not m.editSymptoms
-                      }
+      let newModel nodeType = nodes <- (A.push (nodeInit m.id loc nodeType) m.nodes)
       in
         case nodeType of
-          Disease -> newModel nodeType
+          Disease -> 
+            { m | id <- m.id + 1
+                  newModel nodeType
 
           Symptom -> newModel nodeType
 
@@ -220,29 +217,6 @@ viewNode nodeModel =
 linePosition : (Int, Int) -> (Float, Float)
 linePosition (x, y) =
   (toFloat y - 450, toFloat x)
-
-{-- 
-
-viewDisease : Address Action -> (ID, D.Model) -> Html
-viewDisease address (id, model) =
-  let context =
-    ShapeLayout.Context (S.forwardTo address (Update Node id)) (S.forwardTo address (always (Remove id)))
-  in D.view context model
-
-symptomSpace : Address Action -> Model -> Input -> Html
-symptomSpace address m input =
-  let loc = input.point
-  in div [Html.Attributes.style stylesForShapes] (List.map (viewSymptom address) m.symptoms)
-
-viewSymptom : Address Action -> (ID, Symptom.Model) -> Html
-viewSymptom address (id, model) =
-  let context =
-    ShapeLayout.Context (S.forwardTo address (Update Symptom id)) (S.forwardTo address (always (Remove Symptom id)))
-  in Symptom.view context model
-
-link : ID -> ID -> Dict ID (Int, Int) -> Dict ID (Int, Int) -> Element
-link dId sId dLocs sLocs =
-  collage 1000 1000 [traced {defaultLine | width <- 5} (segment (linePosition dLocs dId) (linePosition sLocs sId))] -}
 
 
 buttonStyle : Bool -> Bool -> List (String, String)
