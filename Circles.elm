@@ -3,107 +3,119 @@ module Circles where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Lazy exposing (..)
 import Color as C exposing (..)
 import Signal as S exposing (..)
 import Window as W
 import Mouse as M
 import Maybe
 import Time exposing (..)
-import Text exposing (..)
-import Html.Lazy exposing (..)
-import Disease as D exposing (..)
-import Dict exposing (..)
-import String exposing (..)
 import Keyboard as K exposing (..)
 import Graphics.Element exposing (..)
 import Graphics.Collage exposing (..)
-import ShapeLayout exposing (..)
-import Symptom exposing (..)
-import Debug exposing (..)
+import Debug
+import Array as A
+
 
 type alias ID = Int
 
+type alias NodeModel =
+  { title : String
+  , id : ID
+  , location : (Int, Int)
+  , nodeType : Node
+  }
+
 type alias Model =
-  { diseases : List (ID, D.Model)
-  , symptoms : List (ID, Symptom.Model)
+  { nodes : A.Array (NodeModel)
   , editDisease : Bool
   , editSymptoms : Bool
   , name : String
-  , dId : ID
-  , sId : ID
-  , diseaseLocations : Dict ID (Int, Int)
-  , symptomLocations : Dict ID (Int, Int)
-  , lines : List (Element)
+  , id : ID
+  , links : List (ID, ID)
+  }
+
+nodeInit : ID -> (Int, Int) -> Node -> NodeModel
+nodeInit id loc nodeType =
+  { title = ""
+  , id = id
+  , location = loc
+  , nodeType = nodeType
   }
 
 initialModel = 
-  { diseases = []
-  , symptoms = []
+  { nodes = A.empty
   , editDisease = False
   , editSymptoms = False
   , name = ""
-  , dId = 0
-  , sId = 0
-  , diseaseLocations = Dict.empty
-  , symptomLocations = Dict.empty
-  , lines = []
+  , id = 0
+  , links = []
   }
+
+type Node
+  = Disease
+  | Symptom
+  | Empty
 
 type Action
   = NoOp
-  | UpdateTitle String
-  | Update Shape ID ShapeLayout.Action
-  | Create Shape (Int, Int)
-  | AddSymptoms (Int, Int)
+  | Create Node (Int, Int)
   | Edit
-  | Remove Shape ID
-
-type Shape
-  = Disease
-  | Symptom
+  | Remove ID
 
 actions : Mailbox Action
 actions = S.mailbox NoOp
+
+
+layout : String -> (Int, Int) -> List (String, String)
+layout color (x, y) =
+  [ ("border-radius", "1000px")
+    , ("width", "150px")
+    , ("border", "0")
+    , ("text-align", "center")
+    , ("line-height", "100px")
+    , ("color", "#fff")
+    , ("height", "150px")
+    , ("cursor", "pointer")
+    , ("background-color", color)
+    , ("display", "inline")
+    , ("position", "absolute")
+    , ("top", ((toString (x - 50)) ++ "px"))
+    , ("left", ((toString (y - 75)) ++ "px"))
+    , ("font-size", "19px")
+    , ("font-weight", "bold")
+    , ("box-shadow", "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)")
+    ]
 
 update : Action -> Model -> Model
 update action m =
   case action of
     NoOp -> m
 
-    UpdateTitle str ->
-      { m | name <- str }
+    {--Update str id ->
+      let newTitle = if (length m.titles < (id - 1)) then A.push str m.titles else A.set id str m.titles
+      in 
+        { m | titles <- newTitle } -}
 
-    Create shape loc ->
-      case shape of
-        Disease ->
-          if m.editDisease then
-            { m | 
-              dId <- m.dId + 1,
-              name <- "",
-              diseases <- (m.dId, (D.init m.dId "Disease Name..." (D.defaultLayout loc))) :: m.diseases,
-              diseaseLocations <- insert m.dId loc m.diseaseLocations,
-              editDisease <- not m.editDisease,
-              editSymptoms <- not m.editSymptoms
-            }
+    Create nodeType loc ->
+      let newModel nodeType = { m | 
+                        id <- m.id + 1,
+                        nodes <- (A.push (nodeInit m.id loc nodeType) m.nodes),
+                        editDisease <- not m.editDisease,
+                        editSymptoms <- not m.editSymptoms
+                      }
+      in
+        case nodeType of
+          Disease -> newModel nodeType
 
-          else m
-        Symptom ->
-          if m.editSymptoms then
-            { m | 
-                sId <- m.sId + 1,
-                name <- "",
-                symptoms <- (m.sId, (Symptom.init m.sId "Symptom Name..." (Symptom.symptomLayout loc))) :: m.symptoms,
-                symptomLocations <- insert m.sId loc m.symptomLocations,
-                lines <- (addLines (m.dId - 1) (m.sId - 1) m.diseaseLocations m.symptomLocations) :: m.lines
-            }
+          Symptom -> newModel nodeType
 
-          else m
-
-    Update shape id shapeAction ->
-      case shape of 
-        Disease ->
-          let updateDisease (diseaseID, diseaseModel) =
-                if diseaseID == id then (diseaseID,  { diseaseModel | shape <- ShapeLayout.update shapeAction diseaseModel.shape } ) else (diseaseID, diseaseModel)
+          Empty -> m
+        
+       
+    {--Update node id shapeAction ->
+      let updateNode (nodeID, nodeModel) =
+            if nodeID == id then (nodeID,  { nodeModel | shape <- ShapeLayout.update shapeAction diseaseModel.shape } ) else (diseaseID, diseaseModel)
 
           in
             { m | diseases <- List.map updateDisease m.diseases }
@@ -111,19 +123,19 @@ update action m =
         Symptom ->
           let updateSymptom (symptomID, symptomModel) =
             if symptomID == id then (symptomID, { symptomModel | shape <- ShapeLayout.update shapeAction symptomModel.shape}) else (symptomID, symptomModel)
-          in { m | symptoms <- List.map updateSymptom m.symptoms }
+          in { m | symptoms <- List.map updateSymptom m.symptoms } -}
       
 
     Edit ->
       { m | editDisease <- not m.editDisease }
 
-    Remove shape id ->
-      case shape of
-        Disease ->
-          { m | diseases <- List.filter (\(diseaseID, _) -> diseaseID /= id) m.diseases }
-
-        Symptom ->
-          {m | symptoms <- List.filter (\(symptomID, _) -> symptomID /= id) m.symptoms }
+  {--  Remove id ->
+      let
+          newArray array = A.fromList (List.filter (\(nodeID, _) -> nodeID /= id) (A.toIndexedList array))
+      in { m | nodes <- newArray m.nodes,
+               nodeLocations <- newArray m.nodeLocations,
+               titles <- newArray m.titles
+        } -}
 
 type alias Input = {
     point : (Int, Int)
@@ -137,11 +149,11 @@ drawStyle =
   ]
 
 view : Address Action -> Model -> Input -> Html
-view address m input=
+view address m input =
   body [class "disease-map-wrapper", Html.Attributes.style [("position", "absolute")]]
   [ section
     [ id "disease-map-app" ]
-    [ (lazy3 buttonBar address m input)
+    [ (lazy3 buttonBar address (Debug.watch "model" m) input)
     , (lazy3 combinedSpace address m input)
     ] 
   ]   
@@ -154,8 +166,7 @@ buttonBar address m input =
      Html.header [ id "header" ]
     [ section []
       [ editButton
-      , fromElement (show m.dId)
-      , fromElement (show m.sId)
+      , fromElement (show input.point)
       ]
     ]
 
@@ -177,22 +188,45 @@ styleForLine =
 combinedSpace : Address Action -> Model -> Input -> Html
 combinedSpace address m input =
   let loc = input.point
-      action = if m.editDisease then (Create Disease loc) else if m.editSymptoms then (Create Symptom loc) else NoOp
-  in div [ onClick address action, Html.Attributes.style drawStyle] [(diseaseSpace address m input), (symptomSpace address m input), (lineSpace address m)]
+      nodeType = if m.editDisease then Disease else if m.editSymptoms then Symptom else Empty
+  in div [ onClick address (Create nodeType loc), Html.Attributes.style drawStyle] (A.toList (A.map viewNode m.nodes))
 
-diseaseSpace : Address Action -> Model -> Input -> Html
-diseaseSpace address m input=
-  let loc = input.point
-  in div [ Html.Attributes.style stylesForShapes ] (List.map (viewDisease address) m.diseases)
+viewNode : NodeModel -> Html
+viewNode nodeModel =
+  let layout color (x, y) =
+    [ ("border-radius", "1000px")
+    , ("width", "150px")
+    , ("border", "0")
+    , ("text-align", "center")
+    , ("line-height", "100px")
+    , ("color", "#fff")
+    , ("height", "150px")
+    , ("cursor", "pointer")
+    , ("background-color", color)
+    , ("display", "inline")
+    , ("position", "absolute")
+    , ("top", ((toString (y - 125)) ++ "px"))
+    , ("left", ((toString (x - 75)) ++ "px"))
+    , ("font-size", "19px")
+    , ("font-weight", "bold")
+    , ("box-shadow", "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)")
+    ]
+  in
+    case nodeModel.nodeType of
+      Disease -> div [style (layout "#9c27b0" nodeModel.location) ] []
 
-lineSpace : Address Action -> Model -> Html
-lineSpace address m =
-  div [Html.Attributes.style styleForLine ] (List.map drawLines m.lines)
+      Symptom -> div [style (layout "#D32F2F" nodeModel.location) ] []
+
+linePosition : (Int, Int) -> (Float, Float)
+linePosition (x, y) =
+  (toFloat y - 450, toFloat x)
+
+{-- 
 
 viewDisease : Address Action -> (ID, D.Model) -> Html
 viewDisease address (id, model) =
   let context =
-    ShapeLayout.Context (S.forwardTo address (Update Disease id)) (S.forwardTo address (always (Remove Disease id)))
+    ShapeLayout.Context (S.forwardTo address (Update Node id)) (S.forwardTo address (always (Remove id)))
   in D.view context model
 
 symptomSpace : Address Action -> Model -> Input -> Html
@@ -206,20 +240,10 @@ viewSymptom address (id, model) =
     ShapeLayout.Context (S.forwardTo address (Update Symptom id)) (S.forwardTo address (always (Remove Symptom id)))
   in Symptom.view context model
 
-addLines : ID -> ID -> Dict ID (Int, Int) -> Dict ID (Int, Int) -> Element
-addLines dId sId dLocs sLocs =
-  let dLoc = Maybe.withDefault (0, 0) (get dId dLocs)
-      sLoc = Maybe.withDefault (0, 0) (get sId sLocs)
-      a = (Basics.toFloat (fst dLoc) - 450)
-      b = (500 - Basics.toFloat (snd dLoc))
-      c = (Basics.toFloat (fst sLoc) - 450)
-      d = (500 - Basics.toFloat (snd sLoc))
-  in collage 1000 1000 [traced {defaultLine | width <- 5} (segment (a, b) (c, d))] 
+link : ID -> ID -> Dict ID (Int, Int) -> Dict ID (Int, Int) -> Element
+link dId sId dLocs sLocs =
+  collage 1000 1000 [traced {defaultLine | width <- 5} (segment (linePosition dLocs dId) (linePosition sLocs sId))] -}
 
-
-drawLines : Element -> Html
-drawLines line =
-  fromElement line
 
 buttonStyle : Bool -> Bool -> List (String, String)
 buttonStyle bool1 bool2 =
@@ -227,6 +251,30 @@ buttonStyle bool1 bool2 =
     if bool1 then "#9c27b0" else if bool2 then "#D32F2F" else "#2196F3"
   in [ ("background-color", color), ("display", "inline"), ("color", "#fff"), ("box-shadow", "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)"), ("height", "30px"), ("margin", "0 auto")]
 
+removeButton : List (String, String)
+removeButton =
+  [ ("color", "#000")
+  , ("height", "12px")
+  , ("z-index", "2")
+  , ("position", "absolute")
+  , ("float", "right")
+  , ("top", "0px")
+  , ("right", "0px")
+  ]
+
+inputLayout : List (String, String)
+inputLayout =
+  [ ("background-color", "inherit")
+  , ("border", "0")
+  , ("border-radius", "1000px")
+  , ("color", "#fff") 
+  , ("type", "hidden")
+  , ("width", "inherit")
+  , ("text-align", "center")
+  , ("font-weight", "bold")
+  , ("font-size", "16px")
+  , ("line-height", "145px")
+  ]
 
 main : Signal Html
 main = view actions.address <~ model ~ userInput
