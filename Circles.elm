@@ -30,7 +30,6 @@ type alias Model =
   { nodes : A.Array (NodeModel)
   , editDisease : Bool
   , editSymptoms : Bool
-  , name : String
   , id : ID
   , links : List (ID, ID)
   }
@@ -47,7 +46,6 @@ initialModel =
   { nodes = A.empty
   , editDisease = False
   , editSymptoms = False
-  , name = ""
   , id = 0
   , links = []
   }
@@ -98,14 +96,20 @@ update action m =
         { m | titles <- newTitle } -}
 
     Create nodeType loc ->
-      let newModel nodeType = nodes <- (A.push (nodeInit m.id loc nodeType) m.nodes)
+      let newModel nodeType = (A.push (nodeInit m.id loc nodeType) m.nodes)
       in
         case nodeType of
           Disease -> 
-            { m | id <- m.id + 1
-                  newModel nodeType
+            { m | id <- m.id + 1,
+                  nodes <- newModel nodeType,
+                  editDisease <- not m.editDisease,
+                  editSymptoms <- not m.editSymptoms
+                }
 
-          Symptom -> newModel nodeType
+          Symptom ->
+            { m | id <- m.id + 1,
+                  nodes <- newModel nodeType
+                }
 
           Empty -> m
         

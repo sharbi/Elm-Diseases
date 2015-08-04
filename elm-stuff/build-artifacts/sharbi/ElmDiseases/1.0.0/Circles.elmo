@@ -111,7 +111,7 @@ Elm.Circles.make = function (_elm) {
                    ,_0: $Basics.toFloat(_v0._1) - 450
                    ,_1: $Basics.toFloat(_v0._0)};}
          _U.badCase($moduleName,
-         "on line 222, column 4 to 30");
+         "on line 223, column 4 to 30");
       }();
    };
    var viewNode = function (nodeModel) {
@@ -174,7 +174,7 @@ Elm.Circles.make = function (_elm) {
                                        ,_0: "box-shadow"
                                        ,_1: "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)"}]);}
                _U.badCase($moduleName,
-               "between lines 197 and 213");
+               "between lines 198 and 214");
             }();
          });
          return function () {
@@ -193,7 +193,7 @@ Elm.Circles.make = function (_elm) {
                  nodeModel.location))]),
                  _L.fromArray([]));}
             _U.badCase($moduleName,
-            "between lines 215 and 218");
+            "between lines 216 and 219");
          }();
       }();
    };
@@ -291,7 +291,7 @@ Elm.Circles.make = function (_elm) {
                                  ,_0: "box-shadow"
                                  ,_1: "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)"}]);}
          _U.badCase($moduleName,
-         "between lines 72 and 88");
+         "between lines 70 and 86");
       }();
    });
    var Remove = function (a) {
@@ -371,7 +371,6 @@ Elm.Circles.make = function (_elm) {
                       ,editSymptoms: false
                       ,id: 0
                       ,links: _L.fromArray([])
-                      ,name: ""
                       ,nodes: $Array.empty};
    var nodeInit = F3(function (id,
    loc,
@@ -389,30 +388,32 @@ Elm.Circles.make = function (_elm) {
          {case "Create":
             return function () {
                  var newModel = function (nodeType) {
-                    return _U.replace([["id"
-                                       ,m.id + 1]
-                                      ,["nodes"
-                                       ,A2($Array.push,
-                                       A3(nodeInit,
-                                       m.id,
-                                       action._1,
-                                       nodeType),
-                                       m.nodes)]
-                                      ,["editDisease"
-                                       ,$Basics.not(m.editDisease)]
-                                      ,["editSymptoms"
-                                       ,$Basics.not(m.editSymptoms)]],
-                    m);
+                    return A2($Array.push,
+                    A3(nodeInit,
+                    m.id,
+                    action._1,
+                    nodeType),
+                    m.nodes);
                  };
                  return function () {
                     switch (action._0.ctor)
                     {case "Disease":
-                       return newModel(action._0);
+                       return _U.replace([["id"
+                                          ,m.id + 1]
+                                         ,["nodes",newModel(action._0)]
+                                         ,["editDisease"
+                                          ,$Basics.not(m.editDisease)]
+                                         ,["editSymptoms"
+                                          ,$Basics.not(m.editSymptoms)]],
+                         m);
                        case "Empty": return m;
                        case "Symptom":
-                       return newModel(action._0);}
+                       return _U.replace([["id"
+                                          ,m.id + 1]
+                                         ,["nodes",newModel(action._0)]],
+                         m);}
                     _U.badCase($moduleName,
-                    "between lines 108 and 129");
+                    "between lines 101 and 130");
                  }();
               }();
             case "Edit":
@@ -421,7 +422,7 @@ Elm.Circles.make = function (_elm) {
               m);
             case "NoOp": return m;}
          _U.badCase($moduleName,
-         "between lines 92 and 138");
+         "between lines 90 and 139");
       }();
    });
    var model = A3($Signal.foldp,
@@ -433,18 +434,16 @@ Elm.Circles.make = function (_elm) {
    view(actions.address),
    model),
    userInput);
-   var Model = F6(function (a,
+   var Model = F5(function (a,
    b,
    c,
    d,
-   e,
-   f) {
+   e) {
       return {_: {}
              ,editDisease: b
              ,editSymptoms: c
-             ,id: e
-             ,links: f
-             ,name: d
+             ,id: d
+             ,links: e
              ,nodes: a};
    });
    var NodeModel = F4(function (a,
