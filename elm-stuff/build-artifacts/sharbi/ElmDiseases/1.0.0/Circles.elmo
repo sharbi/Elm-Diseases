@@ -10,20 +10,44 @@ Elm.Circles.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Circles",
    $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $ElmFire = Elm.ElmFire.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
    $Html$Lazy = Elm.Html.Lazy.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Mouse = Elm.Mouse.make(_elm),
-   $Node = Elm.Node.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm);
+   var encoderItem = function (singleNode) {
+      return function () {
+         var $ = singleNode.location,
+         a = $._0,
+         b = $._1;
+         var nType = $Basics.toString(singleNode.nodeType);
+         return $Json$Encode.object(_L.fromArray([{ctor: "_Tuple2"
+                                                  ,_0: "title"
+                                                  ,_1: $Json$Encode.string(singleNode.title)}
+                                                 ,{ctor: "_Tuple2"
+                                                  ,_0: "location1"
+                                                  ,_1: $Json$Encode.$int(a)}
+                                                 ,{ctor: "_Tuple2"
+                                                  ,_0: "location2"
+                                                  ,_1: $Json$Encode.$int(b)}
+                                                 ,{ctor: "_Tuple2"
+                                                  ,_0: "nodeType"
+                                                  ,_1: $Json$Encode.string(nType)}]));
+      }();
+   };
+   var url = "https://disease-map.firebaseIO.com";
    var delta = A2($Signal.map,
    function (t) {
       return t / 1500;
@@ -37,7 +61,7 @@ Elm.Circles.make = function (_elm) {
                    ,_0: $Basics.toFloat(_v0._0) - 500
                    ,_1: 550 - $Basics.toFloat(_v0._1)};}
          _U.badCase($moduleName,
-         "on line 223, column 4 to 50");
+         "on line 384, column 4 to 50");
       }();
    };
    var buttonStyle = F2(function (bool1,
@@ -64,70 +88,6 @@ Elm.Circles.make = function (_elm) {
                               ,_1: "0 auto"}]);
       }();
    });
-   var viewLinks = F2(function (m,
-   _v4) {
-      return function () {
-         switch (_v4.ctor)
-         {case "_Tuple2":
-            return function () {
-                 var _ = A2($List.filter,
-                 function (_v8) {
-                    return function () {
-                       switch (_v8.ctor)
-                       {case "_Tuple2":
-                          return _U.eq(_v8._0,_v4._1);}
-                       _U.badCase($moduleName,
-                       "on line 211, column 54 to 70");
-                    }();
-                 },
-                 m.nodes);
-                 var node2 = function () {
-                    switch (_.ctor)
-                    {case "::": switch (_._0.ctor)
-                         {case "_Tuple2":
-                            switch (_._1.ctor)
-                              {case "[]": return _._0._1;}
-                              break;}
-                         break;}
-                    _U.badCase($moduleName,
-                    "on line 211, column 22 to 79");
-                 }();
-                 var _ = A2($List.filter,
-                 function (_v17) {
-                    return function () {
-                       switch (_v17.ctor)
-                       {case "_Tuple2":
-                          return _U.eq(_v17._0,_v4._0);}
-                       _U.badCase($moduleName,
-                       "on line 210, column 55 to 71");
-                    }();
-                 },
-                 m.nodes);
-                 var node1 = function () {
-                    switch (_.ctor)
-                    {case "::": switch (_._0.ctor)
-                         {case "_Tuple2":
-                            switch (_._1.ctor)
-                              {case "[]": return _._0._1;}
-                              break;}
-                         break;}
-                    _U.badCase($moduleName,
-                    "on line 210, column 23 to 80");
-                 }();
-                 return A3($Graphics$Collage.collage,
-                 1000,
-                 1000,
-                 _L.fromArray([A2($Graphics$Collage.traced,
-                 _U.replace([["width",7]],
-                 $Graphics$Collage.defaultLine),
-                 A2($Graphics$Collage.segment,
-                 linePosition(node1.location),
-                 linePosition(node2.location)))]));
-              }();}
-         _U.badCase($moduleName,
-         "between lines 210 and 213");
-      }();
-   });
    var styleForLine = _L.fromArray([{ctor: "_Tuple2"
                                     ,_0: "height"
                                     ,_1: "inherit"}
@@ -137,13 +97,6 @@ Elm.Circles.make = function (_elm) {
                                    ,{ctor: "_Tuple2"
                                     ,_0: "z-index"
                                     ,_1: "-2"}]);
-   var viewListLinks = function (m) {
-      return A2($Html.div,
-      _L.fromArray([$Html$Attributes.style(styleForLine)]),
-      _L.fromArray([$Html.fromElement($Graphics$Element.layers(A2($List.map,
-      viewLinks(m),
-      m.links)))]));
-   };
    var stylesForShapes = _L.fromArray([{ctor: "_Tuple2"
                                        ,_0: "height"
                                        ,_1: "1000px"}
@@ -156,118 +109,61 @@ Elm.Circles.make = function (_elm) {
                                       ,{ctor: "_Tuple2"
                                        ,_0: "z-index"
                                        ,_1: "1"}]);
-   var drawStyle = _L.fromArray([{ctor: "_Tuple2"
-                                 ,_0: "height"
-                                 ,_1: "1000px"}
-                                ,{ctor: "_Tuple2"
-                                 ,_0: "width"
-                                 ,_1: "1000px"}
-                                ,{ctor: "_Tuple2"
-                                 ,_0: "position"
-                                 ,_1: "relative"}
-                                ,{ctor: "_Tuple2"
-                                 ,_0: "z-index"
-                                 ,_1: "1"}]);
-   var Input = function (a) {
-      return {_: {},point: a};
-   };
-   var userInput = $Signal.sampleOn(delta)(A2($Signal.map,
-   Input,
-   $Mouse.position));
-   var update = F2(function (action,
-   m) {
-      return function () {
-         switch (action.ctor)
-         {case "Create":
-            return function () {
-                 var newLink = A2($List._op["::"],
-                 {ctor: "_Tuple2"
-                 ,_0: m.storedDisease
-                 ,_1: m.id},
-                 m.links);
-                 var newModel = function (num) {
-                    return A2($List._op["::"],
-                    {ctor: "_Tuple2"
-                    ,_0: m.id
-                    ,_1: A2($Node.init,
-                    action._1,
-                    num)},
-                    m.nodes);
-                 };
-                 return function () {
-                    switch (action._0)
-                    {case 1:
-                       return _U.replace([["id"
-                                          ,m.id + 1]
-                                         ,["nodes",newModel(action._0)]
-                                         ,["editDisease"
-                                          ,$Basics.not(m.editDisease)]
-                                         ,["editSymptoms"
-                                          ,$Basics.not(m.editSymptoms)]
-                                         ,["storedDisease",m.id]],
-                         m);
-                       case 2: return _U.replace([["id"
-                                                  ,m.id + 1]
-                                                 ,["nodes",newModel(action._0)]
-                                                 ,["links",newLink]],
-                         m);
-                       case 4: return m;}
-                    _U.badCase($moduleName,
-                    "between lines 93 and 110");
-                 }();
-              }();
-            case "Edit":
-            return _U.replace([["editDisease"
-                               ,$Basics.not(m.editDisease)]],
-              m);
-            case "NoOp": return m;
-            case "Remove":
-            return _U.replace([["nodes"
-                               ,A2($List.filter,
-                               function (_v33) {
-                                  return function () {
-                                     switch (_v33.ctor)
-                                     {case "_Tuple2":
-                                        return !_U.eq(_v33._0,
-                                          action._0);}
-                                     _U.badCase($moduleName,
-                                     "on line 111, column 51 to 63");
-                                  }();
-                               },
-                               m.nodes)]],
-              m);
-            case "Update":
-            return function () {
-                 var updateNode = function (_v37) {
-                    return function () {
-                       switch (_v37.ctor)
-                       {case "_Tuple2":
-                          return _U.eq(_v37._0,
-                            action._0) ? {ctor: "_Tuple2"
-                                         ,_0: _v37._0
-                                         ,_1: A2($Node.update,
-                                         action._1,
-                                         _v37._1)} : {ctor: "_Tuple2"
-                                                     ,_0: _v37._0
-                                                     ,_1: _v37._1};}
-                       _U.badCase($moduleName,
-                       "between lines 83 and 85");
-                    }();
-                 };
-                 return _U.replace([["nodes"
-                                    ,A2($List.map,
-                                    updateNode,
-                                    m.nodes)]],
-                 m);
-              }();}
-         _U.badCase($moduleName,
-         "between lines 78 and 136");
-      }();
-   });
+   var inputLayout = _L.fromArray([{ctor: "_Tuple2"
+                                   ,_0: "background-color"
+                                   ,_1: "inherit"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "border"
+                                   ,_1: "0"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "border-radius"
+                                   ,_1: "1000px"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "color"
+                                   ,_1: "#fff"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "type"
+                                   ,_1: "hidden"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "width"
+                                   ,_1: "inherit"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "text-align"
+                                   ,_1: "center"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "font-weight"
+                                   ,_1: "bold"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "font-size"
+                                   ,_1: "16px"}
+                                  ,{ctor: "_Tuple2"
+                                   ,_0: "line-height"
+                                   ,_1: "145px"}]);
+   var removeButton = _L.fromArray([{ctor: "_Tuple2"
+                                    ,_0: "color"
+                                    ,_1: "#000"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "height"
+                                    ,_1: "12px"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "z-index"
+                                    ,_1: "2"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "position"
+                                    ,_1: "absolute"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "float"
+                                    ,_1: "right"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "top"
+                                    ,_1: "0px"}
+                                   ,{ctor: "_Tuple2"
+                                    ,_0: "right"
+                                    ,_1: "0px"}]);
    var layout = F2(function (color,
-   _v41) {
+   _v4) {
       return function () {
-         switch (_v41.ctor)
+         switch (_v4.ctor)
          {case "_Tuple2":
             return _L.fromArray([{ctor: "_Tuple2"
                                  ,_0: "border-radius"
@@ -305,12 +201,12 @@ Elm.Circles.make = function (_elm) {
                                 ,{ctor: "_Tuple2"
                                  ,_0: "top"
                                  ,_1: A2($Basics._op["++"],
-                                 $Basics.toString(_v41._0 - 50),
+                                 $Basics.toString(_v4._0 - 50),
                                  "px")}
                                 ,{ctor: "_Tuple2"
                                  ,_0: "left"
                                  ,_1: A2($Basics._op["++"],
-                                 $Basics.toString(_v41._1 - 75),
+                                 $Basics.toString(_v4._1 - 75),
                                  "px")}
                                 ,{ctor: "_Tuple2"
                                  ,_0: "font-size"
@@ -322,15 +218,116 @@ Elm.Circles.make = function (_elm) {
                                  ,_0: "box-shadow"
                                  ,_1: "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)"}]);}
          _U.badCase($moduleName,
-         "between lines 58 and 74");
+         "between lines 265 and 281");
       }();
    });
-   var Remove = function (a) {
-      return {ctor: "Remove"
+   var drawStyle = _L.fromArray([{ctor: "_Tuple2"
+                                 ,_0: "height"
+                                 ,_1: "1000px"}
+                                ,{ctor: "_Tuple2"
+                                 ,_0: "width"
+                                 ,_1: "1000px"}
+                                ,{ctor: "_Tuple2"
+                                 ,_0: "position"
+                                 ,_1: "relative"}
+                                ,{ctor: "_Tuple2"
+                                 ,_0: "z-index"
+                                 ,_1: "1"}]);
+   var nodeUpdate = F2(function (nodeAction,
+   node) {
+      return function () {
+         switch (nodeAction.ctor)
+         {case "ChangeBool":
+            return _U.replace([["autoFocus"
+                               ,true]],
+              node);
+            case "UpdateTitle":
+            return _U.replace([["title"
+                               ,nodeAction._0]],
+              node);}
+         _U.badCase($moduleName,
+         "between lines 235 and 243");
+      }();
+   });
+   var ChangeBool = {ctor: "ChangeBool"};
+   var UpdateTitle = function (a) {
+      return {ctor: "UpdateTitle"
+             ,_0: a};
+   };
+   var FromServer = function (a) {
+      return {ctor: "FromServer"
+             ,_0: a};
+   };
+   var FromGui = function (a) {
+      return {ctor: "FromGui"
+             ,_0: a};
+   };
+   var effectsToTask = function (effects) {
+      return function () {
+         switch (effects.ctor)
+         {case "Concurrent":
+            return $Task.map($Basics.always({ctor: "_Tuple0"}))($Task.sequence(A2($List.map,
+              function ($) {
+                 return $Task.spawn(effectsToTask($));
+              },
+              effects._0)));
+            case "NoEffect":
+            return $Task.succeed({ctor: "_Tuple0"});
+            case "Sequential":
+            return $Task.map($Basics.always({ctor: "_Tuple0"}))($Task.sequence(A2($List.map,
+              effectsToTask,
+              effects._0)));
+            case "SingleTask":
+            return effects._0;}
+         _U.badCase($moduleName,
+         "between lines 129 and 146");
+      }();
+   };
+   var Never = function (a) {
+      return {ctor: "Never",_0: a};
+   };
+   var Concurrent = function (a) {
+      return {ctor: "Concurrent"
+             ,_0: a};
+   };
+   var Sequential = function (a) {
+      return {ctor: "Sequential"
+             ,_0: a};
+   };
+   var SingleTask = function (a) {
+      return {ctor: "SingleTask"
+             ,_0: a};
+   };
+   var effect = function (task) {
+      return SingleTask(A2($Task.map,
+      $Basics.always({ctor: "_Tuple0"}),
+      $Task.toResult(task)));
+   };
+   var effectAsync = function (task) {
+      return SingleTask(A2($Task.map,
+      $Basics.always({ctor: "_Tuple0"}),
+      $Task.spawn(task)));
+   };
+   var NoEffect = {ctor: "NoEffect"};
+   var Removed = function (a) {
+      return {ctor: "Removed"
+             ,_0: a};
+   };
+   var Changed = function (a) {
+      return {ctor: "Changed"
+             ,_0: a};
+   };
+   var Added = function (a) {
+      return {ctor: "Added",_0: a};
+   };
+   var NoServerEvent = {ctor: "NoServerEvent"};
+   var serverInput = $Signal.mailbox(NoServerEvent);
+   var DeleteNode = function (a) {
+      return {ctor: "DeleteNode"
              ,_0: a};
    };
    var Edit = {ctor: "Edit"};
-   var buttonBar = F3(function (address,
+   var buttonBar = F3(function (guiAddress,
    m,
    input) {
       return function () {
@@ -339,7 +336,7 @@ Elm.Circles.make = function (_elm) {
                       m.editDisease,
                       m.editSymptoms))
                       ,A2($Html$Events.onClick,
-                      address,
+                      guiAddress,
                       Edit)]),
          _L.fromArray([$Html.text("Create New Disease")]));
          return A2($Html.header,
@@ -349,65 +346,351 @@ Elm.Circles.make = function (_elm) {
          _L.fromArray([editButton]))]));
       }();
    });
-   var Create = F2(function (a,b) {
-      return {ctor: "Create"
+   var AddNode = F2(function (a,
+   b) {
+      return {ctor: "AddNode"
              ,_0: a
              ,_1: b};
    });
-   var Update = F2(function (a,b) {
-      return {ctor: "Update"
+   var UpdateNode = F2(function (a,
+   b) {
+      return {ctor: "UpdateNode"
              ,_0: a
              ,_1: b};
    });
-   var viewNode = F2(function (address,
-   _v45) {
+   var viewNode = F2(function (guiAddress,
+   _v14) {
       return function () {
-         switch (_v45.ctor)
+         switch (_v14.ctor)
          {case "_Tuple2":
             return function () {
-                 var context = A2($Node.Context,
-                 A2($Signal.forwardTo,
-                 address,
-                 Update(_v45._0)),
-                 A2($Signal.forwardTo,
-                 address,
-                 $Basics.always(Remove(_v45._0))));
-                 return A2($Node.view,
-                 context,
-                 _v45._1);
+                 var html = F3(function (place,
+                 color,
+                 node) {
+                    return A2($Html.div,
+                    _L.fromArray([$Html$Attributes.style(A2(layout,
+                                 color,
+                                 node.location))
+                                 ,A2($Html$Events.onClick,
+                                 guiAddress,
+                                 A2(UpdateNode,
+                                 _v14._0,
+                                 ChangeBool))]),
+                    _L.fromArray([A2($Html.input,
+                                 _L.fromArray([$Html$Attributes.placeholder(place)
+                                              ,$Html$Attributes.autofocus(node.autoFocus)
+                                              ,$Html$Attributes.value(node.title)
+                                              ,A3($Html$Events.on,
+                                              "input",
+                                              $Html$Events.targetValue,
+                                              function (str) {
+                                                 return A2($Signal.message,
+                                                 guiAddress,
+                                                 A2(UpdateNode,
+                                                 _v14._0,
+                                                 UpdateTitle(str)));
+                                              })
+                                              ,$Html$Attributes.style(inputLayout)]),
+                                 _L.fromArray([]))
+                                 ,A2($Html.button,
+                                 _L.fromArray([A2($Html$Events.onClick,
+                                              guiAddress,
+                                              DeleteNode(_v14._0))
+                                              ,$Html$Attributes.style(removeButton)]),
+                                 _L.fromArray([$Html.text("X")]))]));
+                 });
+                 return function () {
+                    var _v18 = _v14._1.nodeType;
+                    switch (_v18.ctor)
+                    {case "Disease": return A3(html,
+                         "Disease Name...",
+                         "#9c27b0",
+                         _v14._1);
+                       case "Symptom": return A3(html,
+                         "Symptom Name...",
+                         "#D32F2F",
+                         _v14._1);}
+                    _U.badCase($moduleName,
+                    "between lines 360 and 363");
+                 }();
               }();}
          _U.badCase($moduleName,
-         "between lines 198 and 202");
+         "between lines 346 and 363");
       }();
    });
-   var viewListNodes = F2(function (address,
+   var viewListNodes = F2(function (guiAddress,
    m) {
-      return A2($Html.div,
-      _L.fromArray([]),
-      A2($List.map,
-      viewNode(address),
-      m.nodes));
+      return function () {
+         var nodeView = function (_v19) {
+            return function () {
+               switch (_v19.ctor)
+               {case "_Tuple2":
+                  return A2($Html.div,
+                    _L.fromArray([]),
+                    _L.fromArray([A2(viewNode,
+                    guiAddress,
+                    {ctor: "_Tuple2"
+                    ,_0: _v19._0
+                    ,_1: _v19._1})]));}
+               _U.badCase($moduleName,
+               "on line 341, column 34 to 80");
+            }();
+         };
+         return A2($Html.div,
+         _L.fromArray([]),
+         A2($List.map,
+         nodeView,
+         $Dict.toList(m.nodes)));
+      }();
    });
-   var combinedSpace = F3(function (address,
+   var NoGuiEvent = {ctor: "NoGuiEvent"};
+   var guiInput = $Signal.mailbox(NoGuiEvent);
+   var actions = A2($Signal.merge,
+   A2($Signal.map,
+   FromGui,
+   guiInput.signal),
+   A2($Signal.map,
+   FromServer,
+   serverInput.signal));
+   var initNode = F4(function (str,
+   loc,
+   nodeType,
+   bool) {
+      return {_: {}
+             ,autoFocus: bool
+             ,location: loc
+             ,nodeType: nodeType
+             ,title: str};
+   });
+   var emptyModel = {_: {}
+                    ,editDisease: true
+                    ,editSymptoms: false
+                    ,links: _L.fromArray([])
+                    ,nodes: $Dict.empty
+                    ,storedDisease: 0};
+   var initialModel = emptyModel;
+   var Model = F5(function (a,
+   b,
+   c,
+   d,
+   e) {
+      return {_: {}
+             ,editDisease: b
+             ,editSymptoms: c
+             ,links: d
+             ,nodes: a
+             ,storedDisease: e};
+   });
+   var Node = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,autoFocus: d
+             ,location: b
+             ,nodeType: c
+             ,title: a};
+   });
+   var PreNode = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,location1: b
+             ,location2: c
+             ,nodeType: d
+             ,title: a};
+   });
+   var decoderItem = A5($Json$Decode.object4,
+   PreNode,
+   A2($Json$Decode._op[":="],
+   "title",
+   $Json$Decode.string),
+   A2($Json$Decode._op[":="],
+   "location1",
+   $Json$Decode.$int),
+   A2($Json$Decode._op[":="],
+   "location2",
+   $Json$Decode.$int),
+   A2($Json$Decode._op[":="],
+   "nodeType",
+   $Json$Decode.string));
+   var decodeItem = function (value) {
+      return $Result.toMaybe(A2($Json$Decode.decodeValue,
+      decoderItem,
+      value));
+   };
+   var runServerQuery = Elm.Native.Task.make(_elm).perform(function () {
+      var loc = $ElmFire.fromUrl(url);
+      var doNothing = function (_v23) {
+         return function () {
+            return $Task.succeed({ctor: "_Tuple0"});
+         }();
+      };
+      var snap2task = F2(function (eventOp,
+      snapshot) {
+         return function () {
+            var _v25 = decodeItem(snapshot.value);
+            switch (_v25.ctor)
+            {case "Just":
+               return A2($Signal.send,
+                 serverInput.address,
+                 eventOp({ctor: "_Tuple2"
+                         ,_0: snapshot.key
+                         ,_1: _v25._0}));
+               case "Nothing":
+               return $Task.fail({ctor: "_Tuple0"});}
+            _U.badCase($moduleName,
+            "between lines 430 and 436");
+         }();
+      });
+      return A2($Task.andThen,
+      A4($ElmFire.subscribe,
+      snap2task(Added),
+      doNothing,
+      $ElmFire.childAdded,
+      loc),
+      function (_v27) {
+         return function () {
+            return A2($Task.andThen,
+            A4($ElmFire.subscribe,
+            snap2task(Changed),
+            doNothing,
+            $ElmFire.childChanged,
+            loc),
+            function (_v29) {
+               return function () {
+                  return A2($Task.andThen,
+                  A4($ElmFire.subscribe,
+                  snap2task(function (_v31) {
+                     return function () {
+                        switch (_v31.ctor)
+                        {case "_Tuple2":
+                           return Removed(_v31._0);}
+                        _U.badCase($moduleName,
+                        "on line 447, column 31 to 41");
+                     }();
+                  }),
+                  doNothing,
+                  $ElmFire.childRemoved,
+                  loc),
+                  function (_v35) {
+                     return function () {
+                        return $Task.succeed({ctor: "_Tuple0"});
+                     }();
+                  });
+               }();
+            });
+         }();
+      });
+   }());
+   var Empty = {ctor: "Empty"};
+   var emptyNode = A4(initNode,
+   "",
+   {ctor: "_Tuple2",_0: 0,_1: 0},
+   Empty,
+   false);
+   var viewLinks = F2(function (m,
+   _v37) {
+      return function () {
+         switch (_v37.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var node2 = A2($Maybe.withDefault,
+                 emptyNode,
+                 A2($Dict.get,_v37._1,m.nodes));
+                 var node1 = A2($Maybe.withDefault,
+                 emptyNode,
+                 A2($Dict.get,_v37._0,m.nodes));
+                 return A3($Graphics$Collage.collage,
+                 1000,
+                 1000,
+                 _L.fromArray([A2($Graphics$Collage.traced,
+                 _U.replace([["width",7]],
+                 $Graphics$Collage.defaultLine),
+                 A2($Graphics$Collage.segment,
+                 linePosition(node1.location),
+                 linePosition(node2.location)))]));
+              }();}
+         _U.badCase($moduleName,
+         "between lines 371 and 374");
+      }();
+   });
+   var viewListLinks = function (m) {
+      return A2($Html.div,
+      _L.fromArray([$Html$Attributes.style(styleForLine)]),
+      _L.fromArray([$Html.fromElement($Graphics$Element.layers(A2($List.map,
+      viewLinks(m),
+      m.links)))]));
+   };
+   var Symptom = {ctor: "Symptom"};
+   var Disease = {ctor: "Disease"};
+   var nodeThePreNode = function (preNode) {
+      return function () {
+         var typeOfNode = _U.eq(preNode.nodeType,
+         "Disease") ? Disease : _U.eq(preNode.nodeType,
+         "Symptom") ? Symptom : Empty;
+         var loc = {ctor: "_Tuple2"
+                   ,_0: preNode.location1
+                   ,_1: preNode.location2};
+         var title = preNode.title;
+         return A4(initNode,
+         title,
+         loc,
+         typeOfNode,
+         false);
+      }();
+   };
+   var updateState = F2(function (action,
+   _v41) {
+      return function () {
+         switch (_v41.ctor)
+         {case "_Tuple2":
+            return function () {
+                 return {ctor: "_Tuple2"
+                        ,_0: _v41._0
+                        ,_1: NoEffect};
+              }();}
+         _U.badCase($moduleName,
+         "between lines 173 and 226");
+      }();
+   });
+   var state = A3($Signal.foldp,
+   updateState,
+   {ctor: "_Tuple2"
+   ,_0: emptyModel
+   ,_1: NoEffect},
+   actions);
+   var flowModel = A2($Signal.map,
+   $Basics.fst,
+   state);
+   var effects = A2($Signal.map,
+   $Basics.snd,
+   state);
+   var runEffects = Elm.Native.Task.make(_elm).performSignal("runEffects",
+   A2($Signal.map,
+   effectsToTask,
+   effects));
+   var combinedSpace = F3(function (guiAddress,
    m,
    input) {
       return function () {
-         var nodeType = m.editDisease ? 1 : m.editSymptoms ? 2 : 4;
+         var nodeType = m.editDisease ? Disease : m.editSymptoms ? Symptom : Empty;
          var loc = input.point;
          return A2($Html.div,
          _L.fromArray([A2($Html$Events.onClick,
-                      address,
-                      A2(Create,nodeType,loc))
+                      guiAddress,
+                      A2(AddNode,nodeType,loc))
                       ,$Html$Attributes.style(stylesForShapes)]),
          _L.fromArray([A2($Html.section,
          _L.fromArray([]),
          _L.fromArray([A2(viewListNodes,
-                      address,
+                      guiAddress,
                       m)
                       ,viewListLinks(m)]))]));
       }();
    });
-   var view = F3(function (address,
+   var view = F3(function (guiAddress,
    m,
    input) {
       return A2($Html.body,
@@ -419,61 +702,70 @@ Elm.Circles.make = function (_elm) {
       _L.fromArray([$Html$Attributes.id("disease-map-app")]),
       _L.fromArray([A4($Html$Lazy.lazy3,
                    buttonBar,
-                   address,
-                   A2($Debug.watch,"model",m),
+                   guiAddress,
+                   m,
                    input)
                    ,A4($Html$Lazy.lazy3,
                    combinedSpace,
-                   address,
+                   guiAddress,
                    m,
                    input)]))]));
    });
-   var NoOp = {ctor: "NoOp"};
-   var actions = $Signal.mailbox(NoOp);
-   var initialModel = {_: {}
-                      ,editDisease: false
-                      ,editSymptoms: false
-                      ,id: 0
-                      ,links: _L.fromArray([])
-                      ,nodes: _L.fromArray([])
-                      ,storedDisease: 0};
-   var model = A3($Signal.foldp,
-   update,
-   initialModel,
-   actions.signal);
+   var Input = function (a) {
+      return {_: {},point: a};
+   };
+   var userInput = $Signal.sampleOn(delta)(A2($Signal.map,
+   Input,
+   $Mouse.position));
    var main = A2($Signal._op["~"],
    A2($Signal._op["<~"],
-   view(actions.address),
-   model),
+   view(guiInput.address),
+   flowModel),
    userInput);
-   var Model = F6(function (a,
-   b,
-   c,
-   d,
-   e,
-   f) {
-      return {_: {}
-             ,editDisease: b
-             ,editSymptoms: c
-             ,id: d
-             ,links: e
-             ,nodes: a
-             ,storedDisease: f};
-   });
    _elm.Circles.values = {_op: _op
-                         ,Model: Model
-                         ,initialModel: initialModel
-                         ,NoOp: NoOp
-                         ,Update: Update
-                         ,Create: Create
-                         ,Edit: Edit
-                         ,Remove: Remove
-                         ,actions: actions
-                         ,layout: layout
-                         ,update: update
                          ,Input: Input
+                         ,Disease: Disease
+                         ,Symptom: Symptom
+                         ,Empty: Empty
+                         ,PreNode: PreNode
+                         ,nodeThePreNode: nodeThePreNode
+                         ,Node: Node
+                         ,emptyNode: emptyNode
+                         ,Model: Model
+                         ,emptyModel: emptyModel
+                         ,initNode: initNode
+                         ,NoGuiEvent: NoGuiEvent
+                         ,UpdateNode: UpdateNode
+                         ,AddNode: AddNode
+                         ,Edit: Edit
+                         ,DeleteNode: DeleteNode
+                         ,guiInput: guiInput
+                         ,NoServerEvent: NoServerEvent
+                         ,Added: Added
+                         ,Changed: Changed
+                         ,Removed: Removed
+                         ,serverInput: serverInput
+                         ,NoEffect: NoEffect
+                         ,SingleTask: SingleTask
+                         ,Sequential: Sequential
+                         ,Concurrent: Concurrent
+                         ,Never: Never
+                         ,effect: effect
+                         ,effectAsync: effectAsync
+                         ,effectsToTask: effectsToTask
+                         ,FromGui: FromGui
+                         ,FromServer: FromServer
+                         ,actions: actions
+                         ,state: state
+                         ,updateState: updateState
+                         ,UpdateTitle: UpdateTitle
+                         ,ChangeBool: ChangeBool
+                         ,nodeUpdate: nodeUpdate
                          ,drawStyle: drawStyle
                          ,view: view
+                         ,layout: layout
+                         ,removeButton: removeButton
+                         ,inputLayout: inputLayout
                          ,buttonBar: buttonBar
                          ,stylesForShapes: stylesForShapes
                          ,styleForLine: styleForLine
@@ -484,9 +776,15 @@ Elm.Circles.make = function (_elm) {
                          ,viewLinks: viewLinks
                          ,buttonStyle: buttonStyle
                          ,linePosition: linePosition
+                         ,initialModel: initialModel
                          ,main: main
                          ,delta: delta
                          ,userInput: userInput
-                         ,model: model};
+                         ,flowModel: flowModel
+                         ,effects: effects
+                         ,url: url
+                         ,encoderItem: encoderItem
+                         ,decodeItem: decodeItem
+                         ,decoderItem: decoderItem};
    return _elm.Circles.values;
 };

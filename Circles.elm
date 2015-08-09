@@ -4,54 +4,261 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (..)
-import Color as C exposing (..)
 import Signal as S exposing (..)
-import Window as W
 import Mouse as M
-import Maybe
 import Time exposing (..)
-import Keyboard as K exposing (..)
 import Graphics.Element exposing (..)
 import Graphics.Collage exposing (..)
-import Debug
-import Array as A
-import Node as N exposing (..)
+import ElmFire exposing (..)
+import Json.Encode as JE exposing (..)
+import Json.Decode as JD exposing ((:=))
+import Task exposing (Task, andThen)
+import Dict as D exposing (..)
 
+{--Type declarations -}
 
-type alias ID = Int
+type alias ID = String
 
+type alias Input = {
+    point : (Int, Int)
+  }
+
+type NodeType
+    = Disease
+    | Symptom
+    | Empty
+
+type alias PreNode =
+  { title : String
+  , location1 : Int
+  , location2 : Int
+  , nodeType : String
+  }
+
+nodeThePreNode : PreNode -> Node
+nodeThePreNode preNode =
+  let title = preNode.title
+      loc = (preNode.location1, preNode.location2)
+      typeOfNode = if (preNode.nodeType == "Disease") then Disease else if (preNode.nodeType == "Symptom") then Symptom else Empty
+  in  (initNode title loc typeOfNode False)
+
+type alias Node =
+  { title : String
+  , location : (Int, Int)
+  , nodeType : NodeType
+  , autoFocus : Bool
+  }
+
+emptyNode : Node
+emptyNode =
+  initNode "" (0,0) Empty False
 
 type alias Model =
-  { nodes : List (ID, N.Model)
+  { nodes : Dict ID Node
   , editDisease : Bool
   , editSymptoms : Bool
-  , id : ID
   , links : List (ID, ID)
   , storedDisease : Int
   }
 
+{--Initial Model -}
 
-
-initialModel = 
-  { nodes = []
+emptyModel = 
+  { nodes = D.empty
   , editDisease = False
   , editSymptoms = False
-  , id = 0
   , links = []
   , storedDisease = 0
   }
 
+{--Initializing Nodes-}
+
+initNode : String -> (Int, Int) -> NodeType -> Bool -> Node
+initNode str loc nodeType bool =
+  { title = str
+  , location = loc
+  , nodeType = nodeType
+  , autoFocus = bool
+  }
+
+{--Deal with user input-}
+
+type GuiEvent
+  = NoGuiEvent
+  | UpdateNode ID NodeAction
+  | AddNode NodeType (Int, Int)
+  | Edit
+  | DeleteNode ID
+
+guiInput : Mailbox GuiEvent
+guiInput = S.mailbox NoGuiEvent
+
+type alias GuiAddress = Address GuiEvent
+
+{--Deal with server input-}
+
+type ServerEvent
+  = NoServerEvent
+  | Added (ID, PreNode)
+  | Changed (ID, PreNode)
+  | Removed ID
+
+serverInput : Mailbox ServerEvent
+serverInput = S.mailbox NoServerEvent
+
+{--Manage tasks-}
+
+type Effects
+  = NoEffect
+  | SingleTask (Task Never ())
+  | Sequential (List Effects)
+  | Concurrent (List Effects)
+
+type Never = Never Never
+
+effect : Task x a -> Effects
+effect task =
+  SingleTask <| Task.map (always ()) (Task.toResult task)
+
+effectAsync : Task x a -> Effects
+effectAsync task =
+  SingleTask <| Task.map (always ()) (Task.spawn task)
+
+effectsToTask : Effects -> Task Never ()
+effectsToTask effects =
+  case effects of
+
+    NoEffect -> Task.succeed ()
+
+    SingleTask task ->
+      task
+
+    Sequential listOfEffects ->
+      List.map effectsToTask listOfEffects
+        |> Task.sequence
+        |> Task.map (always ())
+
+    Concurrent listOfEffects ->
+      List.map (effectsToTask >> Task.spawn) listOfEffects
+        |> Task.sequence
+        |> Task.map (always ())
+
+{--Combine GUI and Server Interactions -}
 
 type Action
-  = NoOp
-  | Update ID N.Action
-  | Create Int (Int, Int)
-  | Edit
-  | Remove ID
+  = FromGui GuiEvent
+  | FromServer ServerEvent
 
-actions : Mailbox Action
-actions = S.mailbox NoOp
+actions : Signal Action
+actions =
+  S.merge
+    (S.map FromGui guiInput.signal)
+    (S.map FromServer serverInput.signal)
 
+state : Signal (Model, Effects)
+state =
+  S.foldp
+    updateState
+    (emptyModel, NoEffect)
+    actions
+
+port runEffects : Signal (Task Never ())
+port runEffects =
+  S.map effectsToTask effects
+
+{--Update the state -}
+
+updateState : Action -> (Model, Effects) -> (Model, Effects)
+updateState action (model, _) =
+  case action of
+    _ -> (model, NoEffect)
+
+    FromServer (Added (id, preNode)) ->
+      let newNode = (nodeThePreNode preNode)
+      in  
+        ( { model | nodes <- D.insert id newNode model.nodes }
+        , NoEffect
+        )
+
+    FromServer (Changed (id, preNode)) ->
+      let modifiedNode = (nodeThePreNode preNode)
+      in  ( { model | nodes <- D.insert id modifiedNode model.nodes }
+        , NoEffect
+        )
+
+    FromServer (Removed id) ->
+      ( { model | nodes <- D.remove id model.nodes }
+      , NoEffect
+      )
+
+    FromGui (AddNode nodeType loc) ->
+      let newNode = ((initNode "" loc nodeType True))
+      in  ( model 
+          , effectAsync <|
+              set
+                ( encoderItem newNode )
+                ( fromUrl url |> push )
+          )
+
+   {-- FromGui (UpdateNode id nodeAction) ->
+      let updateNode (nodeId, nodeModel) =
+        if nodeId == id then
+          ( model
+          , effectAsync <|
+              ElmFire.update
+                ( encoderItem (nodeUpdate nodeAction nodeModel) )
+                ( fromUrl url |> ElmFire.sub id )
+          )
+        else (model, NoEffect)
+      in
+        List.map updateNode (D.toList model.nodes) -}
+
+    FromGui (DeleteNode id) ->
+      ( model 
+      , effectAsync <|
+          ElmFire.remove
+            (fromUrl url |> ElmFire.sub id)
+      )
+
+    FromGui (Edit) ->
+      ( { model | editDisease <- not model.editDisease }
+      , NoEffect
+      )
+
+type NodeAction
+    = UpdateTitle String
+    | ChangeBool
+
+
+nodeUpdate : NodeAction -> Node -> Node
+nodeUpdate nodeAction node =
+  case nodeAction of
+    UpdateTitle str ->
+        {node | title <- str}
+
+    ChangeBool ->
+        {node | autoFocus <- True}
+      
+
+{-- Styles, Views and Positioning -}
+
+drawStyle : List (String, String)
+drawStyle =
+  [ ("height", "1000px")
+  , ("width", "1000px")
+  , ("position", "relative")
+  , ("z-index", "1")
+  ]
+
+view : GuiAddress -> Model -> Input -> Html
+view guiAddress m input =
+  body [class "disease-map-wrapper", Html.Attributes.style [("position", "absolute")]]
+  [ section
+    [ id "disease-map-app" ]
+    [ (lazy3 buttonBar guiAddress m input)
+    , (lazy3 combinedSpace guiAddress m input)
+    ] 
+  ]   
 
 layout : String -> (Int, Int) -> List (String, String)
 layout color (x, y) =
@@ -73,94 +280,34 @@ layout color (x, y) =
     , ("box-shadow", "0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15)")
     ]
 
-update : Action -> Model -> Model
-update action m =
-  case action of
-    NoOp -> m
-
-    Update id nodeAction ->
-      let updateNode (nodeId, nodeModel) =
-        if nodeId == id then
-          (nodeId, N.update nodeAction nodeModel)
-        else (nodeId, nodeModel)
-      in
-        { m | nodes <- List.map updateNode m.nodes}
-
-    Create num loc ->
-      let newModel num = (m.id, (N.init loc num)) :: m.nodes
-          newLink = (m.storedDisease, m.id) :: m.links
-      in
-        case num of
-          1 -> 
-            { m | id <- m.id + 1,
-                  nodes <- newModel num,
-                  editDisease <- not m.editDisease,
-                  editSymptoms <- not m.editSymptoms,
-                  storedDisease <- m.id
-            }
-                
-          2 -> 
-            { m | id <- m.id + 1,
-                  nodes <- newModel num,
-                  links <- newLink
-            }
-
-          4 -> m
-
-    Remove id ->
-      { m | nodes <- List.filter (\(nodeId, _) -> nodeId /= id) m.nodes}
-        
-       
-    {--Update node id shapeAction ->
-      let updateNode (nodeID, nodeModel) =
-            if nodeID == id then (nodeID,  { nodeModel | shape <- ShapeLayout.update shapeAction diseaseModel.shape } ) else (diseaseID, diseaseModel)
-
-          in
-            { m | diseases <- List.map updateDisease m.diseases }
-
-        Symptom ->
-          let updateSymptom (symptomID, symptomModel) =
-            if symptomID == id then (symptomID, { symptomModel | shape <- ShapeLayout.update shapeAction symptomModel.shape}) else (symptomID, symptomModel)
-          in { m | symptoms <- List.map updateSymptom m.symptoms } -}
-      
-
-    Edit ->
-      { m | editDisease <- not m.editDisease }
-
-  {--  Remove id ->
-      let
-          newArray array = A.fromList (List.filter (\(nodeID, _) -> nodeID /= id) (A.toIndexedList array))
-      in { m | nodes <- newArray m.nodes,
-               nodeLocations <- newArray m.nodeLocations,
-               titles <- newArray m.titles
-        } -}
-
-type alias Input = {
-    point : (Int, Int)
-  }
-
-drawStyle : List (String, String)
-drawStyle =
-  [ ("height", "1000px")
-  , ("width", "1000px")
-  , ("position", "relative")
-  , ("z-index", "1")
+removeButton : List (String, String)
+removeButton =
+  [ ("color", "#000")
+  , ("height", "12px")
+  , ("z-index", "2")
+  , ("position", "absolute")
+  , ("float", "right")
+  , ("top", "0px")
+  , ("right", "0px")
   ]
 
-view : Address Action -> Model -> Input -> Html
-view address m input =
-  body [class "disease-map-wrapper", Html.Attributes.style [("position", "absolute")]]
-  [ section
-    [ id "disease-map-app" ]
-    [ (lazy3 buttonBar address (Debug.watch "model" m) input)
-    , (lazy3 combinedSpace address m input)
-    ] 
-  ]   
+inputLayout : List (String, String)
+inputLayout =
+  [ ("background-color", "inherit")
+  , ("border", "0")
+  , ("border-radius", "1000px")
+  , ("color", "#fff") 
+  , ("type", "hidden")
+  , ("width", "inherit")
+  , ("text-align", "center")
+  , ("font-weight", "bold")
+  , ("font-size", "16px")
+  , ("line-height", "145px")
+  ]
 
-
-buttonBar : Address Action -> Model -> Input -> Html
-buttonBar address m input =
-  let editButton = Html.button [ (Html.Attributes.style (buttonStyle m.editDisease m.editSymptoms)), onClick address Edit ] [ Html.text "Create New Disease" ]
+buttonBar : GuiAddress -> Model -> Input -> Html
+buttonBar guiAddress m input =
+  let editButton = Html.button [ (Html.Attributes.style (buttonStyle m.editDisease m.editSymptoms)), onClick guiAddress Edit ] [ Html.text "Create New Disease" ]
   in
      Html.header [ id "header" ]
     [ section []
@@ -183,23 +330,37 @@ styleForLine =
   , ("z-index", "-2")
   ]
 
-combinedSpace : Address Action -> Model -> Input -> Html
-combinedSpace address m input =
+combinedSpace : GuiAddress -> Model -> Input -> Html
+combinedSpace guiAddress m input =
   let loc = input.point
-      nodeType = if m.editDisease then 1 else if m.editSymptoms then 2 else 4
-  in div [ onClick address (Create nodeType loc), Html.Attributes.style stylesForShapes] [section [] [(viewListNodes address m), (viewListLinks m)]]
+      nodeType = if m.editDisease then Disease else if m.editSymptoms then Symptom else Empty
+  in div [ onClick guiAddress (AddNode nodeType loc), Html.Attributes.style stylesForShapes] [section [] [(viewListNodes guiAddress m), (viewListLinks m)]]
 
-viewListNodes : Address Action -> Model -> Html
-viewListNodes address m =
-  div [] (List.map (viewNode address) m.nodes)
+viewListNodes : GuiAddress -> Model -> Html
+viewListNodes guiAddress m =
+  let nodeView (id, nodeModel) = div [] [(viewNode guiAddress (id, nodeModel))]
+  in  div [] (List.map nodeView (D.toList m.nodes))
 
-viewNode : Address Action -> (ID, N.Model) -> Html
-viewNode address (id, model) =
-  let context =
-          N.Context
-            (S.forwardTo address (Update id))
-            (S.forwardTo address (always (Remove id)))
-  in N.view context model
+viewNode : GuiAddress -> (ID, Node) -> Html
+viewNode guiAddress (id, node) =
+  let 
+      html place color node =
+        div [ style (layout color node.location), onClick guiAddress (UpdateNode id ChangeBool)  ]
+          [ input
+              [ placeholder place
+              , autofocus node.autoFocus
+              , Html.Attributes.value node.title
+              , on "input" targetValue (\str -> message guiAddress (UpdateNode id (UpdateTitle str)))
+              , style inputLayout
+              ]
+          []
+          , button [onClick guiAddress (DeleteNode id), style removeButton] [Html.text "X"]
+          ]
+  in
+    case node.nodeType of
+      Disease -> html "Disease Name..." "#9c27b0" node 
+      
+      Symptom -> html "Symptom Name..." "#D32F2F" node
 
 viewListLinks : Model -> Html
 viewListLinks m =
@@ -207,10 +368,10 @@ viewListLinks m =
 
 viewLinks : Model -> (ID, ID) -> Element
 viewLinks m (id1, id2) =
-  let [(_ , node1)] = List.filter (\(diseaseID, _) -> diseaseID == id1) m.nodes
-      [(_, node2)] = List.filter (\(diseaseID, _) -> diseaseID == id2) m.nodes
+  let node1 = Maybe.withDefault emptyNode (D.get id1 m.nodes)
+      node2 = Maybe.withDefault emptyNode (D.get id2 m.nodes)
   in
-    collage 1000 1000 [traced { defaultLine | width <- 7} (segment (linePosition node1.location) (linePosition node2.location))]
+    collage 1000 1000 [traced { defaultLine | width <- 7 } (segment (linePosition node1.location) (linePosition node2.location))]
 
 buttonStyle : Bool -> Bool -> List (String, String)
 buttonStyle bool1 bool2 =
@@ -222,9 +383,14 @@ linePosition : (Int, Int) -> (Float, Float)
 linePosition (x, y) =
   (Basics.toFloat x - 500, 550 - Basics.toFloat y)
 
+initialModel : Model
+initialModel = emptyModel
+
+
+{-- Deal with all the Signals -}
 
 main : Signal Html
-main = view actions.address <~ model ~ userInput
+main = view guiInput.address <~ flowModel ~ userInput
 
 delta : Signal Time
 delta = S.map (\t -> t / 1500) (fps 10)
@@ -234,6 +400,69 @@ userInput =
   S.sampleOn delta <|
     S.map Input M.position
 
-model : Signal Model
-model = S.foldp update initialModel actions.signal
+flowModel : Signal Model
+flowModel = S.map fst state
+
+effects : Signal Effects
+effects = S.map snd state
+
+{-- Interact with Firebase-}
+
+url : String
+url = "https://disease-map.firebaseIO.com"
+
+encoderItem : Node -> JE.Value
+encoderItem singleNode =
+  let nType = toString singleNode.nodeType
+      (a, b) = singleNode.location
+  in  JE.object
+        [ ("title", JE.string singleNode.title )
+        , ("location1", JE.int a)
+        , ("location2", JE.int b)
+        , ("nodeType", JE.string nType)
+        ] 
+
+port runServerQuery : Task ElmFire.Error ()
+port runServerQuery =
+  let snap2task : ((ID, PreNode) -> ServerEvent) -> Snapshot -> Task () ()
+      snap2task eventOp =
+        (\snapshot ->
+          case decodeItem snapshot.value of
+            Just nodeModel ->
+              Signal.send
+                serverInput.address
+                (eventOp (snapshot.key, nodeModel))
+            Nothing -> Task.fail ()
+        )
+      doNothing = \_ -> Task.succeed ()
+      loc = (fromUrl url)
+  in
+    subscribe
+      (snap2task Added) doNothing childAdded loc
+    `andThen`
+    \_ -> subscribe
+      (snap2task Changed) doNothing childChanged loc
+    `andThen`
+    \_ -> subscribe
+      (snap2task (\(id, _) -> Removed id)) doNothing childRemoved loc
+    `andThen`
+    \_ -> Task.succeed ()
+
+
+
+decodeItem : JD.Value -> Maybe PreNode
+decodeItem value =
+  JD.decodeValue decoderItem value |> Result.toMaybe
+
+decoderItem : JD.Decoder PreNode
+decoderItem =
+  ( JD.object4 PreNode
+      ("title" := JD.string )
+      ("location1" := JD.int)
+      ("location2" := JD.int)
+      ("nodeType" := JD.string)
+  )
+
+
+
 

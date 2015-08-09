@@ -4,8 +4,10 @@
     "repository": "https://github.com/sharbi/ElmDiseases.git",
     "license": "BSD3",
     "source-directories": [
-        "."
+        ".",
+        "elmfire/src"
     ],
+    "native-modules": true,
     "exposed-modules": [],
     "dependencies": {
         "elm-lang/core": "2.1.0 <= v < 3.0.0",
