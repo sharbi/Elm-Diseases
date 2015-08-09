@@ -1,0 +1,411 @@
+Elm.ElmFire = Elm.ElmFire || {};
+Elm.ElmFire.make = function (_elm) {
+   "use strict";
+   _elm.ElmFire = _elm.ElmFire || {};
+   if (_elm.ElmFire.values)
+   return _elm.ElmFire.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "ElmFire",
+   $Basics = Elm.Basics.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$ElmFire = Elm.Native.ElmFire.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var serverTimeStamp = $Native$ElmFire.serverTimeStamp;
+   var goOnline = $Native$ElmFire.setOffline(false);
+   var goOffline = $Native$ElmFire.setOffline(true);
+   var exportValue = $Native$ElmFire.exportValue;
+   var toPairList = $Native$ElmFire.toPairList;
+   var toKeyList = $Native$ElmFire.toKeyList;
+   var toValueList = $Native$ElmFire.toValueList;
+   var toSnapshotList = $Native$ElmFire.toSnapshotList;
+   var limitToLast = F2(function (num,
+   query) {
+      return _U.insert("limitToLast",
+      num,
+      _U.remove("noLimit",query));
+   });
+   var limitToFirst = F2(function (num,
+   query) {
+      return _U.insert("limitToFirst",
+      num,
+      _U.remove("noLimit",query));
+   });
+   var endAtPriority = F3(function (priority,
+   key,
+   query) {
+      return _U.insert("endAtPriority",
+      {ctor: "_Tuple2"
+      ,_0: priority
+      ,_1: key},
+      _U.remove("noEnd",query));
+   });
+   var startAtPriority = F3(function (priority,
+   key,
+   query) {
+      return _U.insert("startAtPriority",
+      {ctor: "_Tuple2"
+      ,_0: priority
+      ,_1: key},
+      _U.remove("noStart",query));
+   });
+   var endAtKey = F2(function (key,
+   query) {
+      return _U.insert("endAtKey",
+      key,
+      _U.remove("noEnd",query));
+   });
+   var startAtKey = F2(function (key,
+   query) {
+      return _U.insert("startAtKey",
+      key,
+      _U.remove("noStart",query));
+   });
+   var endAtValue = F2(function (value,
+   query) {
+      return _U.insert("endAtValue",
+      value,
+      _U.remove("noEnd",query));
+   });
+   var startAtValue = F2(function (value,
+   query) {
+      return _U.insert("startAtValue",
+      value,
+      _U.remove("noStart",query));
+   });
+   var orderByPriority = function (query) {
+      return _U.insert("orderByPriority",
+      true,
+      _U.remove("noOrder",query));
+   };
+   var orderByKey = function (query) {
+      return _U.insert("orderByKey",
+      true,
+      _U.remove("noOrder",query));
+   };
+   var orderByValue = function (query) {
+      return _U.insert("orderByChildOrValue",
+      $Maybe.Nothing,
+      _U.remove("noOrder",query));
+   };
+   var orderByChild = F2(function (key,
+   query) {
+      return _U.insert("orderByChildOrValue",
+      $Maybe.Just(key),
+      _U.remove("noOrder",query));
+   });
+   var SimpleQuery = F6(function (a,
+   b,
+   c,
+   d,
+   e,
+   f) {
+      return {_: {}
+             ,noEnd: f
+             ,noLimit: d
+             ,noOrder: c
+             ,noStart: e
+             ,queryEvent: b
+             ,tag: a};
+   });
+   var ChildMoved = {ctor: "ChildMoved"};
+   var ChildRemoved = {ctor: "ChildRemoved"};
+   var ChildChanged = {ctor: "ChildChanged"};
+   var ChildAdded = {ctor: "ChildAdded"};
+   var ValueChanged = {ctor: "ValueChanged"};
+   var QueryOptions = {ctor: "QueryOptions"};
+   var emptyOptions = {_: {}
+                      ,noEnd: true
+                      ,noLimit: true
+                      ,noOrder: true
+                      ,noStart: true
+                      ,tag: QueryOptions};
+   var valueChanged = _U.insert("queryEvent",
+   ValueChanged,
+   emptyOptions);
+   var childAdded = _U.insert("queryEvent",
+   ChildAdded,
+   emptyOptions);
+   var childChanged = _U.insert("queryEvent",
+   ChildChanged,
+   emptyOptions);
+   var childRemoved = _U.insert("queryEvent",
+   ChildRemoved,
+   emptyOptions);
+   var childMoved = _U.insert("queryEvent",
+   ChildMoved,
+   emptyOptions);
+   var Query = F2(function (a,b) {
+      return _U.insert("tag",a,b);
+   });
+   var once = $Native$ElmFire.once;
+   var unsubscribe = $Native$ElmFire.unsubscribe;
+   var subscribeConditional = $Native$ElmFire.subscribeConditional;
+   var subscribe = function (createResponseTask) {
+      return subscribeConditional(function ($) {
+         return $Maybe.Just(createResponseTask($));
+      });
+   };
+   var onDisconnectCancel = $Native$ElmFire.onDisconnectCancel;
+   var onDisconnectRemove = $Native$ElmFire.remove(true);
+   var onDisconnectUpdate = $Native$ElmFire.update(true);
+   var onDisconnectSetWithPriority = $Native$ElmFire.setWithPriority(true);
+   var onDisconnectSet = $Native$ElmFire.set(true);
+   var transaction = $Native$ElmFire.transaction;
+   var remove = $Native$ElmFire.remove(false);
+   var update = $Native$ElmFire.update(false);
+   var setPriority = $Native$ElmFire.setPriority;
+   var setWithPriority = $Native$ElmFire.setWithPriority(false);
+   var set = $Native$ElmFire.set(false);
+   var open = $Native$ElmFire.open;
+   var key = $Native$ElmFire.key;
+   var toUrl = $Native$ElmFire.toUrl;
+   var Set = function (a) {
+      return {ctor: "Set",_0: a};
+   };
+   var Remove = {ctor: "Remove"};
+   var Abort = {ctor: "Abort"};
+   var SnapshotFB = {ctor: "SnapshotFB"};
+   var Snapshot = F8(function (a,
+   b,
+   c,
+   d,
+   e,
+   f,
+   g,
+   h) {
+      return {_: {}
+             ,existing: d
+             ,intern_: h
+             ,key: b
+             ,prevKey: f
+             ,priority: g
+             ,reference: c
+             ,subscription: a
+             ,value: e};
+   });
+   var QueryError = F2(function (a,
+   b) {
+      return {ctor: "QueryError"
+             ,_0: a
+             ,_1: b};
+   });
+   var Unsubscribed = function (a) {
+      return {ctor: "Unsubscribed"
+             ,_0: a};
+   };
+   var Subscription = {ctor: "Subscription"};
+   var StringPriority = function (a) {
+      return {ctor: "StringPriority"
+             ,_0: a};
+   };
+   var NumberPriority = function (a) {
+      return {ctor: "NumberPriority"
+             ,_0: a};
+   };
+   var NoPriority = {ctor: "NoPriority"};
+   var Reference = {ctor: "Reference"};
+   var RefLocation = function (a) {
+      return {ctor: "RefLocation"
+             ,_0: a};
+   };
+   var location = RefLocation;
+   var PushLocation = function (a) {
+      return {ctor: "PushLocation"
+             ,_0: a};
+   };
+   var push = PushLocation;
+   var RootLocation = function (a) {
+      return {ctor: "RootLocation"
+             ,_0: a};
+   };
+   var root = RootLocation;
+   var ParentLocation = function (a) {
+      return {ctor: "ParentLocation"
+             ,_0: a};
+   };
+   var parent = ParentLocation;
+   var SubLocation = F2(function (a,
+   b) {
+      return {ctor: "SubLocation"
+             ,_0: a
+             ,_1: b};
+   });
+   var sub = SubLocation;
+   var subscribeConnected = F2(function (createResponseTask,
+   location) {
+      return A4(subscribeConditional,
+      function (snapshot) {
+         return function () {
+            var _v0 = A2($Json$Decode.decodeValue,
+            $Json$Decode.bool,
+            snapshot.value);
+            switch (_v0.ctor)
+            {case "Err":
+               return $Maybe.Nothing;
+               case "Ok":
+               return $Maybe.Just(createResponseTask(_v0._0));}
+            _U.badCase($moduleName,
+            "between lines 615 and 618");
+         }();
+      },
+      $Basics.always($Task.succeed({ctor: "_Tuple0"})),
+      valueChanged,
+      sub(".info/connected")(root(location)));
+   });
+   var subscribeServerTimeOffset = F2(function (createResponseTask,
+   location) {
+      return A4(subscribeConditional,
+      function (snapshot) {
+         return function () {
+            var _v3 = A2($Json$Decode.decodeValue,
+            $Json$Decode.$float,
+            snapshot.value);
+            switch (_v3.ctor)
+            {case "Err":
+               return $Maybe.Nothing;
+               case "Ok":
+               return $Maybe.Just(createResponseTask(_v3._0 * $Time.millisecond));}
+            _U.badCase($moduleName,
+            "between lines 629 and 632");
+         }();
+      },
+      $Basics.always($Task.succeed({ctor: "_Tuple0"})),
+      valueChanged,
+      sub(".info/serverTimeOffset")(root(location)));
+   });
+   var UrlLocation = function (a) {
+      return {ctor: "UrlLocation"
+             ,_0: a};
+   };
+   var fromUrl = UrlLocation;
+   var OtherAuthenticationError = {ctor: "OtherAuthenticationError"};
+   var UserDenied = {ctor: "UserDenied"};
+   var UserCancelled = {ctor: "UserCancelled"};
+   var UnknownError = {ctor: "UnknownError"};
+   var TransportUnavailable = {ctor: "TransportUnavailable"};
+   var ProviderError = {ctor: "ProviderError"};
+   var NetworkError = {ctor: "NetworkError"};
+   var InvalidUser = {ctor: "InvalidUser"};
+   var InvalidToken = {ctor: "InvalidToken"};
+   var InvalidProvider = {ctor: "InvalidProvider"};
+   var InvalidPassword = {ctor: "InvalidPassword"};
+   var InvalidOrigin = {ctor: "InvalidOrigin"};
+   var InvalidEmail = {ctor: "InvalidEmail"};
+   var InvalidCredentials = {ctor: "InvalidCredentials"};
+   var InvalidConfiguration = {ctor: "InvalidConfiguration"};
+   var InvalidArguments = {ctor: "InvalidArguments"};
+   var EmailTaken = {ctor: "EmailTaken"};
+   var AuthenticationDisabled = {ctor: "AuthenticationDisabled"};
+   var UnknownSubscription = {ctor: "UnknownSubscription"};
+   var AuthError = function (a) {
+      return {ctor: "AuthError"
+             ,_0: a};
+   };
+   var OtherFirebaseError = {ctor: "OtherFirebaseError"};
+   var TooBigError = {ctor: "TooBigError"};
+   var UnavailableError = {ctor: "UnavailableError"};
+   var PermissionError = {ctor: "PermissionError"};
+   var LocationError = {ctor: "LocationError"};
+   var Error = F2(function (a,b) {
+      return {_: {}
+             ,description: b
+             ,tag: a};
+   });
+   _elm.ElmFire.values = {_op: _op
+                         ,fromUrl: fromUrl
+                         ,sub: sub
+                         ,parent: parent
+                         ,root: root
+                         ,push: push
+                         ,open: open
+                         ,key: key
+                         ,toUrl: toUrl
+                         ,location: location
+                         ,set: set
+                         ,setWithPriority: setWithPriority
+                         ,setPriority: setPriority
+                         ,update: update
+                         ,remove: remove
+                         ,transaction: transaction
+                         ,subscribe: subscribe
+                         ,unsubscribe: unsubscribe
+                         ,once: once
+                         ,valueChanged: valueChanged
+                         ,childAdded: childAdded
+                         ,childChanged: childChanged
+                         ,childRemoved: childRemoved
+                         ,childMoved: childMoved
+                         ,orderByChild: orderByChild
+                         ,orderByValue: orderByValue
+                         ,orderByKey: orderByKey
+                         ,orderByPriority: orderByPriority
+                         ,startAtValue: startAtValue
+                         ,endAtValue: endAtValue
+                         ,startAtKey: startAtKey
+                         ,endAtKey: endAtKey
+                         ,startAtPriority: startAtPriority
+                         ,endAtPriority: endAtPriority
+                         ,limitToFirst: limitToFirst
+                         ,limitToLast: limitToLast
+                         ,toSnapshotList: toSnapshotList
+                         ,toValueList: toValueList
+                         ,toKeyList: toKeyList
+                         ,toPairList: toPairList
+                         ,exportValue: exportValue
+                         ,goOffline: goOffline
+                         ,goOnline: goOnline
+                         ,subscribeConnected: subscribeConnected
+                         ,onDisconnectSet: onDisconnectSet
+                         ,onDisconnectSetWithPriority: onDisconnectSetWithPriority
+                         ,onDisconnectUpdate: onDisconnectUpdate
+                         ,onDisconnectRemove: onDisconnectRemove
+                         ,onDisconnectCancel: onDisconnectCancel
+                         ,serverTimeStamp: serverTimeStamp
+                         ,subscribeServerTimeOffset: subscribeServerTimeOffset
+                         ,Snapshot: Snapshot
+                         ,Query: Query
+                         ,Error: Error
+                         ,NoPriority: NoPriority
+                         ,NumberPriority: NumberPriority
+                         ,StringPriority: StringPriority
+                         ,Abort: Abort
+                         ,Remove: Remove
+                         ,Set: Set
+                         ,Unsubscribed: Unsubscribed
+                         ,QueryError: QueryError
+                         ,LocationError: LocationError
+                         ,PermissionError: PermissionError
+                         ,UnavailableError: UnavailableError
+                         ,TooBigError: TooBigError
+                         ,OtherFirebaseError: OtherFirebaseError
+                         ,AuthError: AuthError
+                         ,UnknownSubscription: UnknownSubscription
+                         ,AuthenticationDisabled: AuthenticationDisabled
+                         ,EmailTaken: EmailTaken
+                         ,InvalidArguments: InvalidArguments
+                         ,InvalidConfiguration: InvalidConfiguration
+                         ,InvalidCredentials: InvalidCredentials
+                         ,InvalidEmail: InvalidEmail
+                         ,InvalidOrigin: InvalidOrigin
+                         ,InvalidPassword: InvalidPassword
+                         ,InvalidProvider: InvalidProvider
+                         ,InvalidToken: InvalidToken
+                         ,InvalidUser: InvalidUser
+                         ,NetworkError: NetworkError
+                         ,ProviderError: ProviderError
+                         ,TransportUnavailable: TransportUnavailable
+                         ,UnknownError: UnknownError
+                         ,UserCancelled: UserCancelled
+                         ,UserDenied: UserDenied
+                         ,OtherAuthenticationError: OtherAuthenticationError};
+   return _elm.ElmFire.values;
+};
